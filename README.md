@@ -38,6 +38,23 @@ docker-compose.yml    Postgres + API for local development
 - `survey_versions`: an immutable schema snapshot created each time a survey is published.
 - `responses`: answers (JSONB), stored separately and pinned to the `survey_version` the respondent actually saw.
 
+## Authentication
+
+Admin routes use a **JWT** (HS256, 24h expiry), sent as `Authorization: Bearer <token>`.
+
+| Endpoint | Description |
+|----------|-------------|
+| `POST /api/auth/register` | `{email, password}` → `201 {token, expiresAt, admin}` |
+| `POST /api/auth/login` | `{email, password}` → `200 {token, expiresAt, admin}` |
+| `GET /api/auth/me` | Current admin (requires token) |
+
+- Passwords are hashed with **bcrypt** (cost 12).
+- The token parser only accepts HS256 and checks the issuer and expiry, so `alg: none` and forged tokens are rejected.
+- Login returns the same error for an unknown email and a wrong password. For unknown emails it still runs a bcrypt comparison, so response timing doesn't reveal which emails are registered.
+- Emails are normalised (trimmed and lower-cased). Request bodies are size-limited and unknown JSON fields are rejected.
+
+**Token storage trade-off:** the frontend keeps the token in `localStorage` rather than an httpOnly cookie. The web app and the API are deployed on different domains, and cross-site cookies are increasingly blocked by browsers. The cost is that an XSS bug could read the token. The 24h expiry limits that window. With a shared parent domain, an httpOnly `SameSite` cookie would be the stronger choice.
+
 ## Local setup
 
 Requirements: Docker, Go 1.26+, Node 20+.

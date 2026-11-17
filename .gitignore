@@ -12,3 +12,6 @@ apps/api/bin/
 .idea/
 .DS_Store
 Thumbs.db
+
+# local tooling
+.claude/

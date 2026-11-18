@@ -65,7 +65,7 @@ export default function SurveysPage() {
   if (!admin) return <AdminLoading />;
 
   return (
-    <div className="min-h-screen bg-subtle">
+    <div className="min-h-[100dvh] bg-background">
       <AdminHeader email={admin.email} onLogout={logout} />
       <main id="main" className="mx-auto max-w-5xl px-4 py-8">
         <div className="mb-6">
@@ -132,7 +132,7 @@ export default function SurveysPage() {
             ))}
           </Card>
         ) : surveys.length === 0 ? (
-          <div className="rounded-lg border border-dashed border-border-strong bg-surface p-10 text-center">
+          <div className="rounded-xl border border-dashed border-border-strong bg-surface p-10 text-center">
             <ClipboardList className="mx-auto text-muted" size={28} aria-hidden />
             <p className="mt-3 font-medium">No surveys yet</p>
             <p className="mt-1 text-sm text-muted">Give your first survey a title above to get started.</p>
@@ -144,7 +144,7 @@ export default function SurveysPage() {
                 <li key={s.id} className="flex flex-col gap-3 p-5 sm:flex-row sm:items-center sm:justify-between">
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
-                      <Link href={`/surveys/${s.id}`} className="truncate rounded font-medium hover:text-primary">
+                      <Link href={`/surveys/${s.id}`} className="truncate rounded font-medium hover:text-accent">
                         {s.title}
                       </Link>
                       <StatusBadge status={s.status} />

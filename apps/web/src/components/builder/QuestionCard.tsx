@@ -32,7 +32,7 @@ export function QuestionCard({ question: q, index, questions, errors, onChange, 
       ref={setNodeRef}
       style={style}
       data-invalid={hasErrors}
-      className={`rounded-lg border bg-surface p-5 transition-shadow duration-150 ${isDragging ? "z-10 shadow-lg ring-2 ring-ring" : ""} ${
+      className={`rounded-xl border bg-surface p-5 transition-shadow duration-150 ${isDragging ? "z-10 shadow-raised ring-2 ring-ring" : ""} ${
         hasErrors ? "border-danger" : "border-border"
       }`}
     >
@@ -44,7 +44,7 @@ export function QuestionCard({ question: q, index, questions, errors, onChange, 
           {...listeners}
           aria-label={`Drag to reorder question ${index + 1}`}
           title="Drag to reorder"
-          className="-ml-2 inline-flex h-10 w-8 cursor-grab touch-none items-center justify-center rounded-md text-slate-400 hover:bg-subtle hover:text-foreground active:cursor-grabbing"
+          className="-ml-2 inline-flex h-10 w-8 cursor-grab touch-none items-center justify-center rounded-lg text-faint hover:bg-subtle hover:text-foreground active:cursor-grabbing"
         >
           <GripVertical size={18} aria-hidden />
         </button>
@@ -54,7 +54,7 @@ export function QuestionCard({ question: q, index, questions, errors, onChange, 
           aria-label={`Question ${index + 1} type`}
           value={q.type}
           onChange={(e) => onChange(changeType(q, e.target.value as QuestionType))}
-          className="h-9 cursor-pointer rounded-md border border-border-strong bg-surface px-2 text-sm hover:border-slate-400"
+          className="h-9 cursor-pointer rounded-lg border border-border-strong bg-surface px-2 text-sm hover:border-faint"
         >
           {(Object.keys(TYPE_LABELS) as QuestionType[]).map((t) => (
             <option key={t} value={t}>
@@ -85,7 +85,7 @@ export function QuestionCard({ question: q, index, questions, errors, onChange, 
         placeholder="Question text…"
         aria-label={`Question ${index + 1} text`}
         maxLength={LIMITS.title}
-        className={`w-full rounded-md border px-3 py-2 ${errors.title ? "border-danger" : "border-border-strong"}`}
+        className={`w-full rounded-lg border px-3 py-2 ${errors.title ? "border-danger" : "border-border-strong"}`}
       />
       {errors.title && <p className="mt-1 text-xs text-danger">Question text {errors.title}</p>}
 
@@ -106,7 +106,7 @@ export function QuestionCard({ question: q, index, questions, errors, onChange, 
               aria-label="Rating minimum"
               value={q.min ?? 1}
               onChange={(e) => onChange({ ...q, min: Number(e.target.value) })}
-              className="rounded-md border border-border-strong bg-surface px-2 py-1"
+              className="rounded-lg border border-border-strong bg-surface px-2 py-1"
             >
               {[0, 1].map((n) => (
                 <option key={n}>{n}</option>
@@ -117,7 +117,7 @@ export function QuestionCard({ question: q, index, questions, errors, onChange, 
               aria-label="Rating maximum"
               value={q.max ?? 5}
               onChange={(e) => onChange({ ...q, max: Number(e.target.value) })}
-              className="rounded-md border border-border-strong bg-surface px-2 py-1"
+              className="rounded-lg border border-border-strong bg-surface px-2 py-1"
             >
               {[3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
                 <option key={n}>{n}</option>
@@ -128,7 +128,7 @@ export function QuestionCard({ question: q, index, questions, errors, onChange, 
         )}
 
         {q.type === "text" && (
-          <div className="rounded-md border border-dashed border-border-strong px-3 py-2 text-sm text-slate-400">
+          <div className="rounded-lg border border-dashed border-border-strong px-3 py-2 text-sm text-faint">
             Respondents type a free-text answer
           </div>
         )}

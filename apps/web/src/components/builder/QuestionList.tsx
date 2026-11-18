@@ -58,7 +58,7 @@ export function QuestionList({ questions, errors, onChange }: Props) {
   return (
     <div className="flex flex-col gap-4">
       {questions.length === 0 && (
-        <div className="rounded-lg border border-dashed border-border-strong bg-surface p-8 text-center">
+        <div className="rounded-xl border border-dashed border-border-strong bg-surface p-8 text-center">
           <p className="font-medium">No questions yet</p>
           <p className="mt-1 text-sm text-muted">Choose a question type below to add your first one.</p>
         </div>
@@ -85,7 +85,7 @@ export function QuestionList({ questions, errors, onChange }: Props) {
       </DndContext>
 
       {questions.length < LIMITS.questions && (
-        <div className="flex flex-wrap items-center gap-2 rounded-lg border border-dashed border-border-strong bg-surface p-4">
+        <div className="flex flex-wrap items-center gap-2 rounded-xl border border-dashed border-border-strong bg-surface p-4">
           <span className="mr-1 text-sm font-medium">Add a question</span>
           {(Object.keys(TYPE_LABELS) as QuestionType[]).map((t) => (
             <button

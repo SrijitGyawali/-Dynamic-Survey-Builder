@@ -38,7 +38,7 @@ export default function AnalyticsPage() {
   const last7 = data?.daily.slice(-7).reduce((s, d) => s + d.count, 0) ?? 0;
 
   return (
-    <div className="min-h-screen bg-subtle">
+    <div className="min-h-[100dvh] bg-background">
       <AdminHeader email={admin.email} onLogout={logout} />
       <main id="main" className="mx-auto max-w-5xl px-4 py-6">
         <div className="mb-1 flex flex-wrap items-center gap-3 text-sm">
@@ -70,7 +70,7 @@ export default function AnalyticsPage() {
                   <select
                     value={version ?? ""}
                     onChange={(e) => setVersion(e.target.value ? Number(e.target.value) : null)}
-                    className="rounded-md border border-border-strong bg-surface px-2 py-1.5"
+                    className="rounded-lg border border-border-strong bg-surface px-2 py-1.5"
                   >
                     <option value="">All versions</option>
                     {data.byVersion.map((v) => (
@@ -94,7 +94,7 @@ export default function AnalyticsPage() {
                   <Tile label="Last 7 days" value={formatNumber(last7)} />
                   <Tile
                     label="Last response"
-                    value={data.lastResponseAt ? timeAgo(data.lastResponseAt) : "–"}
+                    value={data.lastResponseAt ? timeAgo(data.lastResponseAt) : "None yet"}
                     title={data.lastResponseAt ? new Date(data.lastResponseAt).toLocaleString() : undefined}
                   />
                 </section>
@@ -103,7 +103,7 @@ export default function AnalyticsPage() {
                   <Empty text="No responses yet. Share the public link to start collecting answers." />
                 ) : (
                   <>
-                    <section className="rounded-lg border border-border bg-surface p-5">
+                    <section className="rounded-xl border border-border bg-surface p-5">
                       <h2 className="font-semibold">Responses per day</h2>
                       <p className="mb-3 text-sm text-muted">Last 30 days</p>
                       <ChartWithTable
@@ -140,7 +140,7 @@ export default function AnalyticsPage() {
 
 function Tile({ label, value, hero, title }: { label: string; value: string; hero?: boolean; title?: string }) {
   return (
-    <div className={`rounded-lg border border-border bg-surface p-4 ${hero ? "col-span-2 sm:col-span-1" : ""}`} title={title}>
+    <div className={`rounded-xl border border-border bg-surface p-4 ${hero ? "col-span-2 sm:col-span-1" : ""}`} title={title}>
       <p className="text-sm text-muted">{label}</p>
       <p className={`mt-1 font-semibold tabular-nums ${hero ? "text-4xl" : "text-2xl"}`}>{value}</p>
     </div>
@@ -148,5 +148,5 @@ function Tile({ label, value, hero, title }: { label: string; value: string; her
 }
 
 function Empty({ text }: { text: string }) {
-  return <p className="rounded-lg border border-dashed border-border-strong p-8 text-center text-muted">{text}</p>;
+  return <p className="rounded-xl border border-dashed border-border-strong p-8 text-center text-muted">{text}</p>;
 }

@@ -2,9 +2,9 @@ import type { SurveyStatus } from "@/lib/types";
 
 // Status always has a text label (never colour alone).
 const styles: Record<SurveyStatus, { cls: string; dot: string }> = {
-  draft: { cls: "bg-slate-100 text-slate-700", dot: "bg-slate-400" },
-  published: { cls: "bg-primary-soft text-primary-hover", dot: "bg-primary" },
-  closed: { cls: "bg-amber-50 text-amber-800", dot: "bg-amber-500" },
+  draft: { cls: "bg-track text-muted", dot: "bg-faint" },
+  published: { cls: "bg-primary-soft text-accent", dot: "bg-primary" },
+  closed: { cls: "bg-warning-soft text-warning", dot: "bg-warning" },
 };
 
 export function StatusBadge({ status }: { status: SurveyStatus }) {

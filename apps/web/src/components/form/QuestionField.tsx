@@ -22,7 +22,7 @@ export function QuestionField({ question: q, number, value, error, onChange }: P
   const invalid = Boolean(error);
   const heading = (
     <>
-      <span className="mr-1 text-slate-400">{number}.</span>
+      <span className="mr-1 text-faint">{number}.</span>
       {q.title}
       {q.required && (
         <span className="ml-1 text-danger" aria-hidden>
@@ -39,7 +39,7 @@ export function QuestionField({ question: q, number, value, error, onChange }: P
     </p>
   );
 
-  const wrapper = `rounded-lg border bg-surface p-5 transition-colors ${invalid ? "border-danger" : "border-border"}`;
+  const wrapper = `rounded-xl border bg-surface p-5 transition-colors ${invalid ? "border-danger" : "border-border"}`;
 
   if (q.type === "text") {
     return (
@@ -55,7 +55,7 @@ export function QuestionField({ question: q, number, value, error, onChange }: P
           maxLength={MAX_TEXT_ANSWER}
           aria-invalid={invalid}
           aria-describedby={invalid ? errId : undefined}
-          className="mt-3 w-full resize-y rounded-md border border-border-strong px-3 py-2 hover:border-slate-400"
+          className="mt-3 w-full resize-y rounded-lg border border-border-strong px-3 py-2 hover:border-faint"
           placeholder="Your answer…"
         />
         {errorText}
@@ -76,7 +76,7 @@ export function QuestionField({ question: q, number, value, error, onChange }: P
             return (
               <label
                 key={o.id}
-                className={`flex cursor-pointer items-center gap-3 rounded-md border px-3 py-2 ${
+                className={`flex cursor-pointer items-center gap-3 rounded-lg border px-3 py-2 ${
                   checked ? "border-primary bg-subtle" : "border-border hover:bg-subtle"
                 }`}
               >
@@ -123,7 +123,7 @@ export function QuestionField({ question: q, number, value, error, onChange }: P
                 className="peer sr-only"
               />
               <span
-                className={`flex h-11 w-11 items-center justify-center rounded-md border text-sm font-medium peer-focus-visible:ring-2 peer-focus-visible:ring-ring ${
+                className={`flex h-11 w-11 items-center justify-center rounded-lg border text-sm font-medium peer-focus-visible:ring-2 peer-focus-visible:ring-ring ${
                   checked ? "border-primary bg-primary text-white" : "border-border-strong hover:bg-subtle"
                 }`}
               >

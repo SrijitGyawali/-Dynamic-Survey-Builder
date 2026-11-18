@@ -107,11 +107,11 @@ export default function PublicSurveyPage() {
   const progress = shown.length ? Math.round((answeredCount / shown.length) * 100) : 0;
 
   return (
-    <div className="min-h-screen bg-subtle">
+    <div className="min-h-[100dvh] bg-background">
       <SiteHeader />
       {survey && (
         // Thin progress bar under the header; the counter below repeats it as text.
-        <div className="sticky top-0 z-10 h-1 bg-slate-200" aria-hidden>
+        <div className="sticky top-0 z-10 h-1 bg-track" aria-hidden>
           <div className="h-full bg-primary transition-[width] duration-300" style={{ width: `${progress}%` }} />
         </div>
       )}
@@ -125,7 +125,7 @@ export default function PublicSurveyPage() {
         )}
 
         {phase.kind === "unavailable" && (
-          <div className="rounded-lg border border-border bg-surface p-8 text-center">
+          <div className="rounded-xl border border-border bg-surface p-8 text-center">
             <h1 className="text-xl font-semibold">{phase.title}</h1>
             <p className="mt-2 text-muted">{phase.text}</p>
             <LinkButton href="/" variant="secondary" className="mt-5">
@@ -135,8 +135,8 @@ export default function PublicSurveyPage() {
         )}
 
         {phase.kind === "submitted" && (
-          <div className="rounded-lg border border-border bg-surface p-8 text-center" role="status">
-            <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-primary-soft text-primary">
+          <div className="rounded-xl border border-border bg-surface p-8 text-center" role="status">
+            <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-primary-soft text-accent">
               <CheckCircle2 size={28} aria-hidden />
             </div>
             <h1 className="text-xl font-semibold">Thank you!</h1>
@@ -149,7 +149,7 @@ export default function PublicSurveyPage() {
 
         {survey && (
           <form onSubmit={onSubmit} noValidate className="flex flex-col gap-4">
-            <header className="rounded-lg border border-border border-t-4 border-t-primary bg-surface p-6">
+            <header className="rounded-xl border border-border border-t-4 border-t-primary bg-surface p-6">
               <h1 className="text-2xl font-semibold tracking-tight text-balance">{survey.title}</h1>
               {survey.description && <p className="mt-2 whitespace-pre-line text-muted">{survey.description}</p>}
               <p className="mt-4 text-sm text-muted">

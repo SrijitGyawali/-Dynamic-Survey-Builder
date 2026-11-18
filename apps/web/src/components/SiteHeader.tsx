@@ -1,14 +1,11 @@
 import Link from "next/link";
-import { ClipboardList } from "lucide-react";
+import { Wordmark } from "./Logo";
 
-/** Brand mark used in both the public and admin headers. */
+/** Brand lockup used in both the public and admin headers. */
 export function Brand({ href = "/" }: { href?: string }) {
   return (
-    <Link href={href} className="inline-flex items-center gap-2 rounded-md font-semibold tracking-tight">
-      <span className="flex h-8 w-8 items-center justify-center rounded-md bg-primary text-white">
-        <ClipboardList size={18} aria-hidden />
-      </span>
-      <span translate="no">Survey Builder</span>
+    <Link href={href} aria-label="Survey Builder home" className="inline-flex rounded-lg">
+      <Wordmark />
     </Link>
   );
 }
@@ -16,10 +13,10 @@ export function Brand({ href = "/" }: { href?: string }) {
 /** Header for public pages. The admin entry point is intentionally low-key. */
 export function SiteHeader() {
   return (
-    <header className="border-b border-border bg-surface">
-      <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-4">
+    <header className="border-b border-border bg-surface/80 backdrop-blur-sm">
+      <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-4 sm:px-6">
         <Brand />
-        <Link href="/admin" className="rounded-md px-3 py-2 text-sm text-muted hover:text-foreground">
+        <Link href="/admin" className="rounded-lg px-3 py-2 text-sm font-medium text-muted hover:text-foreground">
           Admin
         </Link>
       </div>

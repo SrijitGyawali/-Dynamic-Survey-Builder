@@ -1,43 +1,89 @@
 @import "tailwindcss";
 
-/* Design tokens. Minimal / Swiss direction: neutral surfaces, one teal accent,
-   strong ink contrast. Light theme only for now (see README trade-offs). */
+/*
+  Brand tokens, taken from the Survey Builder logo:
+  navy ink (wordmark + mark outline), one violet accent ("Builder" + check),
+  lavender-grey neutrals (the mark's text lines).
+  Rules: one accent, solid fills only (no gradient UI), contrast checked:
+  ink 15.5:1, muted 6.5:1, placeholder 4.75:1, white-on-violet 5.7:1.
+  Radius scale: controls 8px (rounded-lg), cards 12px (rounded-xl), pills full.
+*/
 :root {
-  --background: #ffffff;
-  --surface: #ffffff;
-  --subtle: #f8fafc;       /* page bands, empty states */
-  --foreground: #0f172a;   /* slate-900 ink */
-  --muted: #475569;        /* slate-600: secondary text, 7:1 on white */
-  --border: #e2e8f0;       /* slate-200 */
-  --border-strong: #cbd5e1;
-  --primary: #0f766e;      /* teal-700: white text 5.5:1 */
-  --primary-hover: #115e59;
-  --primary-soft: #f0fdfa; /* teal-50 */
-  --ring: #14b8a6;
-  --danger: #b91c1c;
-  --danger-soft: #fef2f2;
-  /* Charts: validated single-series accent, and a muted bucket colour */
-  --series-1: #0d9488;
-  --series-muted: #b8b7b0;
+  --background: #f7f6fb;      /* lavender-white page */
+  --surface: #ffffff;         /* cards, inputs */
+  --subtle: #f1f0f7;          /* hover rows, bands */
+  --track: #ebe9f3;           /* skeletons, empty tracks, off switch */
+  --foreground: #161b3d;      /* navy ink */
+  --muted: #585c7b;           /* secondary text */
+  --faint: #6e718f;           /* placeholders, grips (AA on surface) */
+  --border: #e5e3ef;
+  --border-strong: #cfcce0;
+  --primary: #7c3aed;         /* solid accent: buttons, switch, progress */
+  --primary-hover: #6d28d9;
+  --primary-soft: #f3eeff;    /* tinted backgrounds */
+  --accent: #6d28d9;          /* accent text and links */
+  --ring: #8b5cf6;
+  --danger: #b42318;
+  --danger-soft: #fef1f0;
+  --warning: #92400e;
+  --warning-soft: #fef3c7;
+  --series-1: #7c3aed;        /* chart accent, validated on light surface */
+  --series-muted: #c3c1d4;
+  --shadow-tint: 22 27 61;    /* navy, for tinted shadows */
   color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0e1024;
+    --surface: #171a38;
+    --subtle: #1d2044;
+    --track: #262a52;
+    --foreground: #ecebf7;
+    --muted: #a3a6c7;
+    --faint: #868aad;
+    --border: #272b52;
+    --border-strong: #383d6a;
+    --primary: #7c3aed;
+    --primary-hover: #8b5cf6;
+    --primary-soft: #261f52;
+    --accent: #b9a2ff;
+    --ring: #a78bfa;
+    --danger: #ff8a80;
+    --danger-soft: #3a1a24;
+    --warning: #f7c46c;
+    --warning-soft: #33270f;
+    --series-1: #8b5cf6;      /* validated on the dark surface */
+    --series-muted: #4a4e7a;
+    --shadow-tint: 0 0 0;
+    color-scheme: dark;
+  }
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-surface: var(--surface);
   --color-subtle: var(--subtle);
+  --color-track: var(--track);
   --color-foreground: var(--foreground);
   --color-muted: var(--muted);
+  --color-faint: var(--faint);
   --color-border: var(--border);
   --color-border-strong: var(--border-strong);
   --color-primary: var(--primary);
   --color-primary-hover: var(--primary-hover);
   --color-primary-soft: var(--primary-soft);
+  --color-accent: var(--accent);
   --color-ring: var(--ring);
   --color-danger: var(--danger);
   --color-danger-soft: var(--danger-soft);
-  --font-sans: var(--font-geist-sans);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --font-sans: var(--font-jakarta);
   --font-mono: var(--font-geist-mono);
+  --shadow-card: 0 1px 2px rgb(var(--shadow-tint) / 0.05), 0 2px 8px -2px rgb(var(--shadow-tint) / 0.06);
+  --shadow-raised: 0 4px 12px -2px rgb(var(--shadow-tint) / 0.08), 0 12px 32px -8px rgb(var(--shadow-tint) / 0.12);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* Keep focused fields clear of the sticky builder bar when tabbing/scrolling. */
@@ -58,8 +104,18 @@ select {
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  font-family: var(--font-jakarta), system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
+  font-feature-settings: "ss01", "cv11";
+}
+
+::selection {
+  background: color-mix(in srgb, var(--primary) 22%, transparent);
+}
+
+/* One stroke weight for every icon (lucide), slightly lighter than default. */
+.lucide {
+  stroke-width: 1.75;
 }
 
 /* One visible focus style for every interactive element (keyboard users). */

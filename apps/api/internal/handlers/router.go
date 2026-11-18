@@ -23,6 +23,7 @@ func NewRouter(cfg config.Config, st *store.Store) http.Handler {
 	api := &API{cfg: cfg, store: st}
 	tokens := auth.NewTokenManager(cfg.JWTSecret)
 	authH := &AuthHandler{admins: st, tokens: tokens}
+	surveyH := &SurveyHandler{surveys: st}
 
 	r := chi.NewRouter()
 	r.Use(middleware.RequestID)
@@ -46,9 +47,19 @@ func NewRouter(cfg config.Config, st *store.Store) http.Handler {
 			r.With(tokens.RequireAdmin).Get("/me", authH.Me)
 		})
 
-		// Admin routes (JWT protected). Survey CRUD lands in phase 3.
-		r.Group(func(r chi.Router) {
+		// Admin routes (JWT protected).
+		r.Route("/surveys", func(r chi.Router) {
 			r.Use(tokens.RequireAdmin)
+			r.Get("/", surveyH.List)
+			r.Post("/", surveyH.Create)
+			r.Route("/{id}", func(r chi.Router) {
+				r.Get("/", surveyH.Get)
+				r.Put("/", surveyH.Update)
+				r.Delete("/", surveyH.Delete)
+				r.Post("/publish", surveyH.Publish)
+				r.Post("/close", surveyH.Close)
+				r.Get("/versions", surveyH.Versions)
+			})
 		})
 
 		// /public routes (no auth, rate limited) land in phase 6.

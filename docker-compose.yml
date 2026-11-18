@@ -22,6 +22,8 @@ services:
       # 3001 too: Next.js moves there when 3000 is busy
       ALLOWED_ORIGINS: http://localhost:3000,http://localhost:3001
       PORT: "8080"
+      # Load the demo admin + survey + responses on startup (idempotent)
+      SEED_DEMO: "true"
     ports:
       - "8080:8080"
     depends_on:

@@ -12,6 +12,8 @@ type Config struct {
 	DatabaseURL    string
 	JWTSecret      string
 	AllowedOrigins []string
+	// SeedDemo loads the demo admin, survey and responses on startup (idempotent).
+	SeedDemo bool
 }
 
 func Load() (Config, error) {
@@ -19,7 +21,8 @@ func Load() (Config, error) {
 		Port:           getEnv("PORT", "8080"),
 		DatabaseURL:    os.Getenv("DATABASE_URL"),
 		JWTSecret:      os.Getenv("JWT_SECRET"),
-		AllowedOrigins: strings.Split(getEnv("ALLOWED_ORIGINS", "http://localhost:3000"), ","),
+		AllowedOrigins: splitList(getEnv("ALLOWED_ORIGINS", "http://localhost:3000")),
+		SeedDemo:       os.Getenv("SEED_DEMO") == "true",
 	}
 	if cfg.DatabaseURL == "" {
 		return cfg, errors.New("DATABASE_URL is required")
@@ -35,4 +38,15 @@ func getEnv(key, fallback string) string {
 		return v
 	}
 	return fallback
+}
+
+// splitList splits "a, b,,c" into ["a" "b" "c"].
+func splitList(s string) []string {
+	var out []string
+	for _, p := range strings.Split(s, ",") {
+		if p = strings.TrimSpace(p); p != "" {
+			out = append(out, p)
+		}
+	}
+	return out
 }

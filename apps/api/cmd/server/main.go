@@ -12,6 +12,7 @@ import (
 
 	"github.com/srijitgyawali/survey-builder/api/internal/config"
 	"github.com/srijitgyawali/survey-builder/api/internal/handlers"
+	"github.com/srijitgyawali/survey-builder/api/internal/seed"
 	"github.com/srijitgyawali/survey-builder/api/internal/store"
 )
 
@@ -40,6 +41,14 @@ func run() error {
 		return err
 	}
 	defer st.Close()
+
+	// Hosted demo: load demo data on startup (idempotent). A failure here is
+	// logged but doesn't stop the API from serving.
+	if cfg.SeedDemo {
+		if err := seed.Run(ctx, st, false); err != nil {
+			slog.Error("demo seed failed", "err", err)
+		}
+	}
 
 	srv := &http.Server{
 		Addr:              ":" + cfg.Port,

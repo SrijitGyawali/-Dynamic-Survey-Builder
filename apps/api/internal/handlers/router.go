@@ -2,6 +2,7 @@
 package handlers
 
 import (
+	"context"
 	"net/http"
 	"time"
 
@@ -11,6 +12,7 @@ import (
 
 	"github.com/srijitgyawali/survey-builder/api/internal/auth"
 	"github.com/srijitgyawali/survey-builder/api/internal/config"
+	"github.com/srijitgyawali/survey-builder/api/internal/ratelimit"
 	"github.com/srijitgyawali/survey-builder/api/internal/store"
 )
 
@@ -19,14 +21,24 @@ type API struct {
 	store *store.Store
 }
 
-func NewRouter(cfg config.Config, st *store.Store) http.Handler {
+// NewRouter builds the HTTP handler. ctx controls background work
+// (rate-limiter cleanup) and should be cancelled on shutdown.
+func NewRouter(ctx context.Context, cfg config.Config, st *store.Store) http.Handler {
 	api := &API{cfg: cfg, store: st}
 	tokens := auth.NewTokenManager(cfg.JWTSecret)
 	authH := &AuthHandler{admins: st, tokens: tokens}
 	surveyH := &SurveyHandler{surveys: st}
+	publicH := &PublicHandler{repo: st, ipHashKey: []byte("ip-hash:" + cfg.JWTSecret)}
+
+	// Separate buckets per purpose, per client IP.
+	authLimit := ratelimit.New(ctx, 10, 10)  // login/register: brute-force protection
+	readLimit := ratelimit.New(ctx, 120, 60) // loading public surveys
+	submitLimit := ratelimit.New(ctx, 10, 5) // submitting responses: spam protection
 
 	r := chi.NewRouter()
 	r.Use(middleware.RequestID)
+	// RealIP trusts X-Forwarded-For / X-Real-IP. Correct behind a proxy
+	// (Render, Fly), where the proxy sets these; see README trade-offs.
 	r.Use(middleware.RealIP)
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
@@ -42,8 +54,8 @@ func NewRouter(cfg config.Config, st *store.Store) http.Handler {
 
 	r.Route("/api", func(r chi.Router) {
 		r.Route("/auth", func(r chi.Router) {
-			r.Post("/register", authH.Register)
-			r.Post("/login", authH.Login)
+			r.With(authLimit.Middleware).Post("/register", authH.Register)
+			r.With(authLimit.Middleware).Post("/login", authH.Login)
 			r.With(tokens.RequireAdmin).Get("/me", authH.Me)
 		})
 
@@ -62,7 +74,11 @@ func NewRouter(cfg config.Config, st *store.Store) http.Handler {
 			})
 		})
 
-		// /public routes (no auth, rate limited) land in phase 6.
+		// Public routes (no auth, rate limited).
+		r.Route("/public/surveys/{slug}", func(r chi.Router) {
+			r.With(readLimit.Middleware).Get("/", publicH.Get)
+			r.With(submitLimit.Middleware).Post("/responses", publicH.Submit)
+		})
 	})
 
 	return r

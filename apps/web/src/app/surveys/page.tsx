@@ -128,8 +128,13 @@ export default function SurveysPage() {
                 </div>
                 <div className="flex shrink-0 gap-2 text-sm">
                   <Link href={`/surveys/${s.id}`} className="rounded-md border px-3 py-1 hover:bg-neutral-100">
-                    Open
+                    Edit
                   </Link>
+                  {s.currentVersion !== null && (
+                    <Link href={`/surveys/${s.id}/analytics`} className="rounded-md border px-3 py-1 hover:bg-neutral-100">
+                      Results
+                    </Link>
+                  )}
                   <button
                     onClick={() => onDelete(s)}
                     className="rounded-md border border-red-200 px-3 py-1 text-red-700 hover:bg-red-50"

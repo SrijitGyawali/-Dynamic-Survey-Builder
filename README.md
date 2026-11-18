@@ -123,6 +123,42 @@ Respondents open `/s/:slug`. **No login is needed.**
   - Limiter state is in memory: per instance, and reset on restart. Redis would make it shared.
   - The client IP comes from `X-Forwarded-For` / `X-Real-IP`, which is correct behind the hosting proxy but spoofable if the API were exposed directly.
 
+## Analytics dashboard
+
+`/surveys/:id/analytics` (admin only):
+
+- **Summary:** total responses, last 7 days, last response, and a 30-day responses-per-day chart.
+- **Per question:**
+  - **Choice questions:** count and share per option.
+  - **Ratings:** the average plus a distribution of every value.
+  - **Text:** the latest answers, with **Load more**.
+- **Version filter:** "All versions" (questions described by the live version) or a single version (described by that version's own schema).
+- **Every chart** has a table view, and each bar has an accessible label.
+
+| Endpoint | Description |
+|----------|-------------|
+| `GET /api/surveys/:id/analytics?version=N` | Everything above in one response |
+| `GET /api/surveys/:id/analytics/questions/:qid/answers?cursor=&limit=` | Text answers, newest first, with **keyset pagination** |
+
+**How it's computed**
+- Aggregation runs **in Postgres** using `jsonb_each`, `jsonb_array_elements_text` (single and multi choice unnested the same way), a `row_number()` window (latest text answers per question), and `generate_series` (days with zero responses). Responses are never loaded into application memory.
+- The 7 queries are independent and run **concurrently** (`errgroup`).
+- Each query checks `jsonb_typeof`, so a question that changed type between versions can't break a cast.
+- When viewing all versions, votes for options that a later version removed are grouped under *"Options removed in a later version"*, so the totals still add up.
+- A conditional question's count shows how many people answered it. Hidden questions store nothing, so "didn't see it" and "skipped" are combined.
+- Text answers use a keyset cursor `(submitted_at, id)`, not `OFFSET`. It stays fast on deep pages and doesn't duplicate rows when new responses arrive.
+
+### Demo data
+
+```bash
+cd apps/api
+DATABASE_URL=postgres://survey:survey@localhost:5433/survey?sslmode=disable go run ./cmd/seed          # idempotent
+DATABASE_URL=... go run ./cmd/seed -reset                                                                 # recreate
+# or inside Docker:  docker compose exec api /seed
+```
+
+This creates `demo@example.com` / `demo-pass-123` (override with `SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD`) and a survey at `/s/customer-satisfaction-demo`. The survey has conditional questions and 2 versions, plus about 68 responses over the last 4 weeks. Generated answers go through the same `ValidateAnswers` as real submissions.
+
 ### Ownership
 
 Every query filters on `admin_id`. Another admin's survey returns **404** rather than 403, so IDs can't be probed. Malformed IDs also return 404.

@@ -202,6 +202,14 @@ export default function SurveyEditorPage() {
                 {dirty ? "• Unsaved changes" : survey.hasUnpublishedChanges && survey.currentVersion !== null ? "• Saved, not published" : ""}
               </span>
               <div className="ml-auto flex gap-2">
+                {survey.currentVersion !== null && (
+                  <Link
+                    href={`/surveys/${id}/analytics`}
+                    className="rounded-md border border-neutral-300 px-3 py-1.5 text-sm hover:bg-neutral-100"
+                  >
+                    Results
+                  </Link>
+                )}
                 <button
                   onClick={save}
                   disabled={!dirty || busy !== null}

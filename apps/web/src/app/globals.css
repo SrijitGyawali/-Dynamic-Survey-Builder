@@ -5,6 +5,9 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  /* Chart colors: a single series uses one hue; muted for "removed" buckets. */
+  --series-1: #2a78d6;
+  --series-muted: #b8b7b0;
   color-scheme: light;
 }
 

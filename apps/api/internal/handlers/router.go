@@ -28,6 +28,7 @@ func NewRouter(ctx context.Context, cfg config.Config, st *store.Store) http.Han
 	tokens := auth.NewTokenManager(cfg.JWTSecret)
 	authH := &AuthHandler{admins: st, tokens: tokens}
 	surveyH := &SurveyHandler{surveys: st}
+	analyticsH := &AnalyticsHandler{store: st}
 	publicH := &PublicHandler{repo: st, ipHashKey: []byte("ip-hash:" + cfg.JWTSecret)}
 
 	// Separate buckets per purpose, per client IP.
@@ -71,6 +72,8 @@ func NewRouter(ctx context.Context, cfg config.Config, st *store.Store) http.Han
 				r.Post("/publish", surveyH.Publish)
 				r.Post("/close", surveyH.Close)
 				r.Get("/versions", surveyH.Versions)
+				r.Get("/analytics", analyticsH.Summary)
+				r.Get("/analytics/questions/{qid}/answers", analyticsH.TextAnswers)
 			})
 		})
 

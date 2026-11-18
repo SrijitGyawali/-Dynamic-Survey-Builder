@@ -29,7 +29,7 @@ services:
         generateValue: true
       # The deployed frontend (Vercel). Comma-separated if there are several.
       - key: ALLOWED_ORIGINS
-        value: https://dynamic-survey-builder.vercel.app
+        value: https://dynamic-survey-builder-nu.vercel.app
       # Load the demo admin + demo survey on startup (idempotent).
       - key: SEED_DEMO
         value: "true"

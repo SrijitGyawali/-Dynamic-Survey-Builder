@@ -77,7 +77,7 @@ export function ColumnChart({ data }: { data: { date: string; count: number }[] 
               className="w-full max-w-[24px] rounded-t-[4px] group-hover:opacity-80 group-focus-visible:ring-2 group-focus-visible:ring-ring"
               style={{ height: `${(d.count / max) * 100}%`, minHeight: d.count > 0 ? 2 : 0, background: "var(--series-1)" }}
             />
-            <span className="pointer-events-none absolute bottom-full z-10 mb-1 hidden whitespace-nowrap rounded-lg bg-primary px-2 py-1 text-xs text-white shadow group-hover:block group-focus-visible:block">
+            <span className="pointer-events-none absolute bottom-full z-10 mb-1 hidden whitespace-nowrap rounded-md bg-primary px-2 py-1 text-xs text-white shadow group-hover:block group-focus-visible:block">
               {fmt(d.date, { month: "short", day: "numeric" })} · <strong>{d.count}</strong>
             </span>
           </div>
@@ -105,7 +105,7 @@ export function ChartWithTable({
   return (
     <div>
       <div className="mb-3 flex justify-end">
-        <div className="inline-flex rounded-lg border border-border p-0.5 text-xs" role="group" aria-label="View">
+        <div className="inline-flex rounded-xl border border-border p-0.5 text-xs" role="group" aria-label="View">
           {["Chart", "Table"].map((v) => (
             <button
               key={v}

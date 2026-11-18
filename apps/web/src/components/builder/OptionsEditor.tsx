@@ -28,14 +28,14 @@ export function OptionsEditor({ options, multi, errors, onChange }: Props) {
             <div className="flex items-center gap-2">
               <span
                 aria-hidden
-                className={`h-4 w-4 shrink-0 border border-faint ${multi ? "rounded" : "rounded-full"}`}
+                className={`h-4 w-4 shrink-0 border border-slate-400 ${multi ? "rounded" : "rounded-full"}`}
               />
               <input
                 value={o.label}
                 onChange={(e) => update(i, e.target.value)}
                 aria-label={`Option ${i + 1}`}
                 maxLength={LIMITS.label}
-                className={`h-9 min-w-0 flex-1 rounded-lg border px-3 text-sm hover:border-faint ${err ? "border-danger" : "border-border-strong"}`}
+                className={`h-9 min-w-0 flex-1 rounded-xl border px-3 text-sm hover:border-slate-400 ${err ? "border-danger" : "border-border-strong"}`}
               />
               <button
                 type="button"
@@ -43,7 +43,7 @@ export function OptionsEditor({ options, multi, errors, onChange }: Props) {
                 disabled={options.length <= 2}
                 title={options.length <= 2 ? "A choice question needs at least 2 options" : "Remove option"}
                 aria-label={`Remove option ${i + 1}`}
-                className="inline-flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg text-muted hover:bg-subtle hover:text-foreground disabled:pointer-events-none disabled:opacity-30"
+                className="inline-flex h-9 w-9 cursor-pointer items-center justify-center rounded-md text-muted hover:bg-subtle hover:text-foreground disabled:pointer-events-none disabled:opacity-30"
               >
                 <X size={16} aria-hidden />
               </button>
@@ -57,7 +57,7 @@ export function OptionsEditor({ options, multi, errors, onChange }: Props) {
         <button
           type="button"
           onClick={add}
-          className="inline-flex cursor-pointer items-center gap-1 self-start rounded-lg py-1 text-sm font-medium text-accent hover:text-foreground"
+          className="inline-flex cursor-pointer items-center gap-1 self-start rounded-md py-1 text-sm font-medium text-primary hover:text-primary-hover"
         >
           <Plus size={16} aria-hidden /> Add option
         </button>

@@ -12,7 +12,7 @@ interface Props {
   onChange: (c: Condition | undefined) => void;
 }
 
-const selectCls = "rounded-lg border border-border-strong bg-surface px-2 py-1 text-sm";
+const selectCls = "rounded-xl border border-border-strong bg-surface px-2 py-1 text-sm";
 
 export function ConditionEditor({ questions, index, condition, errors, onChange }: Props) {
   const targets = conditionTargets(questions, index);
@@ -29,7 +29,7 @@ export function ConditionEditor({ questions, index, condition, errors, onChange 
       <button
         type="button"
         onClick={() => onChange(defaultCondition(targets[targets.length - 1]))}
-        className="inline-flex cursor-pointer items-center gap-1.5 self-start rounded-lg py-1 text-sm font-medium text-accent hover:text-foreground"
+        className="inline-flex cursor-pointer items-center gap-1.5 self-start rounded-md py-1 text-sm font-medium text-primary hover:text-primary-hover"
       >
         <GitBranch size={14} aria-hidden /> Show only if…
       </button>
@@ -38,7 +38,7 @@ export function ConditionEditor({ questions, index, condition, errors, onChange 
 
   return (
     <div
-      className={`flex flex-col gap-2 rounded-lg border p-3 ${err ? "border-danger bg-danger-soft" : "border-primary/25 bg-primary-soft"}`}
+      className={`flex flex-col gap-2 rounded-xl border p-3 ${err ? "border-danger bg-danger-soft" : "border-teal-200 bg-primary-soft"}`}
     >
       <div className="flex flex-wrap items-center gap-2 text-sm">
         <span className="font-medium">Show only if</span>

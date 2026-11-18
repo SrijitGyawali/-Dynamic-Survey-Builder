@@ -1,97 +1,99 @@
 @import "tailwindcss";
 
-/*
-  Brand tokens, taken from the Survey Builder logo:
-  navy ink (wordmark + mark outline), one violet accent ("Builder" + check),
-  lavender-grey neutrals (the mark's text lines).
-  Rules: one accent, solid fills only (no gradient UI), contrast checked:
-  ink 15.5:1, muted 6.5:1, placeholder 4.75:1, white-on-violet 5.7:1.
-  Radius scale: controls 8px (rounded-lg), cards 12px (rounded-xl), pills full.
-*/
+/* Design tokens. Principles borrowed from Apple's web design language
+   (one accent, ink-on-white, quiet grey surfaces, typographic hierarchy,
+   no decorative shadows or gradients), set in Geist.
+   All text pairs pass WCAG AA: ink 16.8:1, muted 5.1:1 (4.7:1 on --subtle),
+   accent 5.6:1, white on accent 5.6:1. */
 :root {
-  --background: #f7f6fb;      /* lavender-white page */
-  --surface: #ffffff;         /* cards, inputs */
-  --subtle: #f1f0f7;          /* hover rows, bands */
-  --track: #ebe9f3;           /* skeletons, empty tracks, off switch */
-  --foreground: #161b3d;      /* navy ink */
-  --muted: #585c7b;           /* secondary text */
-  --faint: #6e718f;           /* placeholders, grips (AA on surface) */
-  --border: #e5e3ef;
-  --border-strong: #cfcce0;
-  --primary: #7c3aed;         /* solid accent: buttons, switch, progress */
-  --primary-hover: #6d28d9;
-  --primary-soft: #f3eeff;    /* tinted backgrounds */
-  --accent: #6d28d9;          /* accent text and links */
-  --ring: #8b5cf6;
-  --danger: #b42318;
-  --danger-soft: #fef1f0;
-  --warning: #92400e;
-  --warning-soft: #fef3c7;
-  --series-1: #7c3aed;        /* chart accent, validated on light surface */
-  --series-muted: #c3c1d4;
-  --shadow-tint: 22 27 61;    /* navy, for tinted shadows */
+  --background: #ffffff;
+  --surface: #ffffff;
+  --subtle: #f5f5f7;        /* quiet alternate surface: page bands, footer */
+  --foreground: #1d1d1f;    /* ink */
+  --muted: #6e6e73;         /* secondary text */
+  --border: #e0e0e0;        /* hairline */
+  --border-strong: #d2d2d7; /* form controls */
+  --primary: #0066cc;       /* the single accent: actions and links */
+  --primary-hover: #0058b0;
+  --primary-soft: #eef4fb;
+  --ring: #0071e3;          /* keyboard focus */
+  --danger: #c9302c;
+  --danger-soft: #fdf2f2;
+  /* Charts: the accent passes the data-viz validator on white. */
+  --series-1: #0066cc;
+  --series-muted: #c7c7cc;
   color-scheme: light;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0e1024;
-    --surface: #171a38;
-    --subtle: #1d2044;
-    --track: #262a52;
-    --foreground: #ecebf7;
-    --muted: #a3a6c7;
-    --faint: #868aad;
-    --border: #272b52;
-    --border-strong: #383d6a;
-    --primary: #7c3aed;
-    --primary-hover: #8b5cf6;
-    --primary-soft: #261f52;
-    --accent: #b9a2ff;
-    --ring: #a78bfa;
-    --danger: #ff8a80;
-    --danger-soft: #3a1a24;
-    --warning: #f7c46c;
-    --warning-soft: #33270f;
-    --series-1: #8b5cf6;      /* validated on the dark surface */
-    --series-muted: #4a4e7a;
-    --shadow-tint: 0 0 0;
-    color-scheme: dark;
-  }
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-surface: var(--surface);
   --color-subtle: var(--subtle);
-  --color-track: var(--track);
   --color-foreground: var(--foreground);
   --color-muted: var(--muted);
-  --color-faint: var(--faint);
   --color-border: var(--border);
   --color-border-strong: var(--border-strong);
   --color-primary: var(--primary);
   --color-primary-hover: var(--primary-hover);
   --color-primary-soft: var(--primary-soft);
-  --color-accent: var(--accent);
   --color-ring: var(--ring);
   --color-danger: var(--danger);
   --color-danger-soft: var(--danger-soft);
-  --color-warning: var(--warning);
-  --color-warning-soft: var(--warning-soft);
-  --font-sans: var(--font-jakarta);
+  --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-  --shadow-card: 0 1px 2px rgb(var(--shadow-tint) / 0.05), 0 2px 8px -2px rgb(var(--shadow-tint) / 0.06);
-  --shadow-raised: 0 4px 12px -2px rgb(var(--shadow-tint) / 0.08), 0 12px 32px -8px rgb(var(--shadow-tint) / 0.12);
-  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --radius-card: 18px;
 }
 
-/* Keep focused fields clear of the sticky builder bar when tabbing/scrolling. */
 html {
+  /* Keep focused fields clear of sticky bars. */
   scroll-padding-top: 5rem;
 }
 
-/* No double-tap zoom delay on controls. */
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-geist-sans), -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  /* Body copy at 17px with an airy line-height; slight negative tracking. */
+  font-size: 17px;
+  line-height: 1.47;
+  letter-spacing: -0.011em;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* Small text (captions, labels) is never negatively tracked. */
+.text-xs,
+.text-sm {
+  letter-spacing: 0;
+}
+
+/* Typographic scale for headings (semibold 600, tight tracking). */
+.type-hero {
+  font-size: clamp(2.25rem, 1.4rem + 3.6vw, 3.5rem); /* 36 → 56px */
+  line-height: 1.07;
+  font-weight: 600;
+  letter-spacing: -0.028em;
+}
+.type-title {
+  font-size: clamp(1.75rem, 1.4rem + 1.4vw, 2.5rem); /* 28 → 40px */
+  line-height: 1.1;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+}
+.type-headline {
+  font-size: 1.3125rem; /* 21px */
+  line-height: 1.19;
+  font-weight: 600;
+  letter-spacing: -0.012em;
+}
+.type-lead {
+  font-size: clamp(1.1875rem, 1rem + 0.7vw, 1.5rem); /* 19 → 24px */
+  line-height: 1.4;
+  font-weight: 400;
+  letter-spacing: -0.012em;
+}
+
 a, button, input, select, textarea, label {
   touch-action: manipulation;
 }
@@ -101,33 +103,30 @@ select {
   color: var(--foreground);
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-jakarta), system-ui, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  font-feature-settings: "ss01", "cv11";
-}
-
-::selection {
-  background: color-mix(in srgb, var(--primary) 22%, transparent);
-}
-
-/* One stroke weight for every icon (lucide), slightly lighter than default. */
-.lucide {
-  stroke-width: 1.75;
-}
-
 /* One visible focus style for every interactive element (keyboard users). */
 :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
   outline: 2px solid var(--ring);
   outline-offset: 2px;
 }
 
-/* Respect reduced-motion for all transitions and animations. */
+/* Pressed feedback for buttons, from the reference system. */
+.press:active {
+  transform: scale(0.97);
+}
+
+/* Frosted sticky bars. */
+.frosted {
+  background-color: rgb(255 255 255 / 0.8);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     transition-duration: 0.01ms !important;
     animation-duration: 0.01ms !important;
+  }
+  .press:active {
+    transform: none;
   }
 }

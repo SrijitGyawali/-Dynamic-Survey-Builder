@@ -189,11 +189,11 @@ export default function SurveyEditorPage() {
       : "All changes saved";
 
   return (
-    <div className="min-h-[100dvh] bg-background">
+    <div className="min-h-screen bg-subtle">
       <AdminHeader email={admin.email} onLogout={logout} />
 
       {notFound ? (
-        <main id="main" className="mx-auto max-w-3xl px-4 py-12 text-center">
+        <main id="main" className="mx-auto max-w-[820px] px-4 py-12 text-center">
           <p className="font-medium">Survey not found</p>
           <p className="mt-1 text-sm text-muted">It may have been deleted.</p>
           <LinkButton href="/surveys" variant="secondary" className="mt-4">
@@ -205,17 +205,17 @@ export default function SurveyEditorPage() {
       ) : (
         <>
           {/* Sticky action bar */}
-          <div className="sticky top-0 z-20 border-b border-border bg-surface/95 backdrop-blur">
-            <div className="mx-auto flex max-w-3xl flex-wrap items-center gap-x-3 gap-y-2 px-4 py-3">
+          <div className="frosted sticky top-12 z-20 border-b border-border/70">
+            <div className="mx-auto flex max-w-[820px] flex-wrap items-center gap-x-3 gap-y-2 px-4 py-3">
               <Link
                 href="/surveys"
-                className="inline-flex items-center gap-1 rounded-lg py-1 text-sm text-muted hover:text-foreground"
+                className="inline-flex items-center gap-1 rounded-md py-1 text-sm text-muted hover:text-foreground"
               >
                 <ArrowLeft size={16} aria-hidden /> Surveys
               </Link>
               <StatusBadge status={survey.status} />
               {survey.currentVersion !== null && <span className="text-xs text-muted">v{survey.currentVersion} live</span>}
-              <span className={`text-xs ${dirty ? "font-medium text-warning" : "text-muted"}`} aria-live="polite">
+              <span className={`text-xs ${dirty ? "font-medium text-amber-700" : "text-muted"}`} aria-live="polite">
                 {saveState}
               </span>
               <div className="ml-auto flex flex-wrap gap-2">
@@ -241,7 +241,7 @@ export default function SurveyEditorPage() {
             </div>
           </div>
 
-          <main id="main" className="mx-auto max-w-3xl px-4 py-6">
+          <main id="main" className="mx-auto max-w-[820px] px-5 py-10">
             {message && (
               <div className="mb-4">
                 <Alert kind={message.kind === "error" ? "error" : "success"}>
@@ -263,8 +263,8 @@ export default function SurveyEditorPage() {
                 onChange={(e) => update({ title: e.target.value })}
                 maxLength={200}
                 aria-invalid={Boolean(other.title)}
-                className={`mt-1.5 w-full rounded-lg border px-3 py-2 text-lg font-semibold ${
-                  other.title ? "border-danger" : "border-border-strong hover:border-faint"
+                className={`mt-1.5 w-full rounded-xl border px-3 py-2 text-lg font-semibold ${
+                  other.title ? "border-danger" : "border-border-strong hover:border-slate-400"
                 }`}
               />
               {other.title && <p className="mt-1 text-sm text-danger">Title {other.title}</p>}
@@ -278,7 +278,7 @@ export default function SurveyEditorPage() {
                 onChange={(e) => update({ description: e.target.value })}
                 maxLength={2000}
                 rows={2}
-                className="mt-1.5 w-full resize-y rounded-lg border border-border-strong px-3 py-2 text-sm hover:border-faint"
+                className="mt-1.5 w-full resize-y rounded-xl border border-border-strong px-3 py-2 text-sm hover:border-slate-400"
               />
 
               <div className="mt-5 flex flex-col gap-4 border-t border-border pt-5 sm:flex-row sm:items-start sm:justify-between">
@@ -289,7 +289,7 @@ export default function SurveyEditorPage() {
                       href={`/s/${survey.slug}`}
                       target="_blank"
                       rel="noopener"
-                      className="mt-1 inline-flex items-center gap-1 break-all rounded font-mono text-sm text-accent hover:underline"
+                      className="mt-1 inline-flex items-center gap-1 break-all rounded font-mono text-sm text-primary hover:underline"
                     >
                       /s/{survey.slug} <ExternalLink size={14} aria-hidden />
                     </a>
@@ -310,7 +310,7 @@ export default function SurveyEditorPage() {
             />
 
             <section className="mt-10">
-              <h2 className="mb-3 font-semibold">Published versions</h2>
+              <h2 className="type-headline mb-4">Published versions</h2>
               {versions.length === 0 ? (
                 <p className="text-sm text-muted">Not published yet.</p>
               ) : (
@@ -321,7 +321,7 @@ export default function SurveyEditorPage() {
                         <span className="inline-flex items-center gap-2 font-medium">
                           Version {v.version}
                           {v.version === survey.currentVersion && (
-                            <span className="inline-flex items-center gap-1 rounded-full bg-primary-soft px-2 py-0.5 text-xs text-accent">
+                            <span className="inline-flex items-center gap-1 rounded-full bg-primary-soft px-2 py-0.5 text-xs text-primary-hover">
                               <Check size={12} aria-hidden /> Live
                             </span>
                           )}
@@ -354,7 +354,7 @@ function ListedSwitch({ checked, onChange }: { checked: boolean; onChange: (v: b
         aria-describedby="listed-help"
         onClick={() => onChange(!checked)}
         className={`relative mt-0.5 inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full transition-colors duration-150 ${
-          checked ? "bg-primary" : "bg-border-strong"
+          checked ? "bg-primary" : "bg-slate-300"
         }`}
       >
         <span

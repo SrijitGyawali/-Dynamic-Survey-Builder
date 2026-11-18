@@ -38,9 +38,9 @@ export default function AnalyticsPage() {
   const last7 = data?.daily.slice(-7).reduce((s, d) => s + d.count, 0) ?? 0;
 
   return (
-    <div className="min-h-[100dvh] bg-background">
+    <div className="min-h-screen bg-subtle">
       <AdminHeader email={admin.email} onLogout={logout} />
-      <main id="main" className="mx-auto max-w-5xl px-4 py-6">
+      <main id="main" className="mx-auto max-w-[1068px] px-5 py-10">
         <div className="mb-1 flex flex-wrap items-center gap-3 text-sm">
           <Link href="/surveys" className="text-muted hover:underline">
             ← Surveys
@@ -57,7 +57,7 @@ export default function AnalyticsPage() {
             <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
               <div>
                 <div className="flex items-center gap-2">
-                  <h1 className="text-2xl font-bold">{data.title}</h1>
+                  <h1 className="type-title">{data.title}</h1>
                   <StatusBadge status={data.status} />
                 </div>
                 <p className="text-sm text-muted">Results</p>
@@ -70,7 +70,7 @@ export default function AnalyticsPage() {
                   <select
                     value={version ?? ""}
                     onChange={(e) => setVersion(e.target.value ? Number(e.target.value) : null)}
-                    className="rounded-lg border border-border-strong bg-surface px-2 py-1.5"
+                    className="rounded-xl border border-border-strong bg-surface px-2 py-1.5"
                   >
                     <option value="">All versions</option>
                     {data.byVersion.map((v) => (
@@ -94,7 +94,7 @@ export default function AnalyticsPage() {
                   <Tile label="Last 7 days" value={formatNumber(last7)} />
                   <Tile
                     label="Last response"
-                    value={data.lastResponseAt ? timeAgo(data.lastResponseAt) : "None yet"}
+                    value={data.lastResponseAt ? timeAgo(data.lastResponseAt) : "–"}
                     title={data.lastResponseAt ? new Date(data.lastResponseAt).toLocaleString() : undefined}
                   />
                 </section>
@@ -103,8 +103,8 @@ export default function AnalyticsPage() {
                   <Empty text="No responses yet. Share the public link to start collecting answers." />
                 ) : (
                   <>
-                    <section className="rounded-xl border border-border bg-surface p-5">
-                      <h2 className="font-semibold">Responses per day</h2>
+                    <section className="rounded-[var(--radius-card)] border border-border bg-surface p-5">
+                      <h2 className="type-headline">Responses per day</h2>
                       <p className="mb-3 text-sm text-muted">Last 30 days</p>
                       <ChartWithTable
                         chart={<ColumnChart data={data.daily} />}
@@ -114,7 +114,7 @@ export default function AnalyticsPage() {
                     </section>
 
                     <section className="flex flex-col gap-4">
-                      <h2 className="font-semibold">Questions</h2>
+                      <h2 className="type-headline mt-4">Questions</h2>
                       {data.questions.map((q, i) => (
                         <QuestionResult
                           key={`${version}-${q.id}`}
@@ -140,7 +140,7 @@ export default function AnalyticsPage() {
 
 function Tile({ label, value, hero, title }: { label: string; value: string; hero?: boolean; title?: string }) {
   return (
-    <div className={`rounded-xl border border-border bg-surface p-4 ${hero ? "col-span-2 sm:col-span-1" : ""}`} title={title}>
+    <div className={`rounded-[var(--radius-card)] border border-border bg-surface p-4 ${hero ? "col-span-2 sm:col-span-1" : ""}`} title={title}>
       <p className="text-sm text-muted">{label}</p>
       <p className={`mt-1 font-semibold tabular-nums ${hero ? "text-4xl" : "text-2xl"}`}>{value}</p>
     </div>
@@ -148,5 +148,5 @@ function Tile({ label, value, hero, title }: { label: string; value: string; her
 }
 
 function Empty({ text }: { text: string }) {
-  return <p className="rounded-xl border border-dashed border-border-strong p-8 text-center text-muted">{text}</p>;
+  return <p className="rounded-[var(--radius-card)] border border-dashed border-border-strong p-8 text-center text-muted">{text}</p>;
 }

@@ -13,6 +13,15 @@ interface Props {
   onChange: (v: Value) => void;
 }
 
+// Option tiles: hairline at rest, 2px accent ring when chosen (no layout shift:
+// the ring is an inset box-shadow, not a thicker border).
+const tile = (checked: boolean) =>
+  `flex min-h-12 cursor-pointer items-center gap-3 rounded-xl border px-4 py-3 transition-[border-color,box-shadow,background-color] duration-150 ${
+    checked
+      ? "border-ring bg-surface shadow-[inset_0_0_0_1px_var(--ring)]"
+      : "border-border-strong bg-surface hover:border-muted/60"
+  }`;
+
 /**
  * Renders one question based on its type. Choice and rating questions use a
  * <fieldset>/<legend> so screen readers announce the question with each option.
@@ -20,43 +29,44 @@ interface Props {
 export function QuestionField({ question: q, number, value, error, onChange }: Props) {
   const errId = `${q.id}-error`;
   const invalid = Boolean(error);
+
   const heading = (
     <>
-      <span className="mr-1 text-faint">{number}.</span>
-      {q.title}
-      {q.required && (
-        <span className="ml-1 text-danger" aria-hidden>
-          *
-        </span>
-      )}
-      {q.required && <span className="sr-only"> (required)</span>}
+      <span className="block text-xs font-semibold uppercase tracking-[0.08em] text-muted">
+        Question {number}
+        {q.required ? "" : " · Optional"}
+      </span>
+      <span className="type-headline mt-2 block text-balance">
+        {q.title}
+        {q.required && <span className="sr-only"> (required)</span>}
+      </span>
     </>
   );
 
   const errorText = error && (
-    <p id={errId} className="mt-2 text-sm text-danger">
+    <p id={errId} className="mt-3 text-sm text-danger">
       {error}
     </p>
   );
 
-  const wrapper = `rounded-xl border bg-surface p-5 transition-colors ${invalid ? "border-danger" : "border-border"}`;
+  const wrapper = "border-t border-border py-10 first:border-t-0";
 
   if (q.type === "text") {
     return (
       <div className={wrapper} data-invalid={invalid}>
-        <label htmlFor={q.id} className="block font-medium">
+        <label htmlFor={q.id} className="block">
           {heading}
         </label>
         <textarea
           id={q.id}
           value={typeof value === "string" ? value : ""}
           onChange={(e) => onChange(e.target.value)}
-          rows={3}
+          rows={4}
           maxLength={MAX_TEXT_ANSWER}
           aria-invalid={invalid}
           aria-describedby={invalid ? errId : undefined}
-          className="mt-3 w-full resize-y rounded-lg border border-border-strong px-3 py-2 hover:border-faint"
-          placeholder="Your answer…"
+          className="mt-5 w-full resize-y rounded-xl border border-border-strong bg-surface px-4 py-3 text-[17px] transition-colors duration-150 placeholder:text-muted/70 hover:border-muted/60 aria-[invalid=true]:border-danger"
+          placeholder="Type your answer…"
         />
         {errorText}
       </div>
@@ -68,18 +78,13 @@ export function QuestionField({ question: q, number, value, error, onChange }: P
     const selected = multi ? (Array.isArray(value) ? value : []) : value;
     return (
       <fieldset className={wrapper} data-invalid={invalid} aria-describedby={invalid ? errId : undefined}>
-        <legend className="float-left w-full font-medium">{heading}</legend>
-        {multi && <p className="clear-both pt-1 text-sm text-muted">Select all that apply</p>}
-        <div className="clear-both flex flex-col gap-2 pt-3">
+        <legend className="float-left w-full">{heading}</legend>
+        {multi && <p className="clear-both pt-2 text-sm text-muted">Choose all that apply.</p>}
+        <div className="clear-both grid gap-3 pt-5 sm:grid-cols-2">
           {q.options?.map((o) => {
             const checked = multi ? (selected as string[]).includes(o.id) : selected === o.id;
             return (
-              <label
-                key={o.id}
-                className={`flex cursor-pointer items-center gap-3 rounded-lg border px-3 py-2 ${
-                  checked ? "border-primary bg-subtle" : "border-border hover:bg-subtle"
-                }`}
-              >
+              <label key={o.id} className={tile(checked)}>
                 <input
                   type={multi ? "checkbox" : "radio"}
                   name={q.id}
@@ -90,9 +95,9 @@ export function QuestionField({ question: q, number, value, error, onChange }: P
                     const list = selected as string[];
                     onChange(checked ? list.filter((x) => x !== o.id) : [...list, o.id]);
                   }}
-                  className="h-4 w-4 accent-primary"
+                  className="h-[18px] w-[18px] shrink-0 cursor-pointer accent-[var(--ring)]"
                 />
-                {o.label}
+                <span>{o.label}</span>
               </label>
             );
           })}
@@ -108,34 +113,39 @@ export function QuestionField({ question: q, number, value, error, onChange }: P
   const values = Array.from({ length: hi - lo + 1 }, (_, i) => lo + i);
   return (
     <fieldset className={wrapper} data-invalid={invalid} aria-describedby={invalid ? errId : undefined}>
-      <legend className="float-left w-full font-medium">{heading}</legend>
-      <div className="clear-both flex flex-wrap gap-2 pt-3">
-        {values.map((n) => {
-          const checked = value === n;
-          return (
-            <label key={n} className="cursor-pointer">
-              <input
-                type="radio"
-                name={q.id}
-                value={n}
-                checked={checked}
-                onChange={() => onChange(n)}
-                className="peer sr-only"
-              />
-              <span
-                className={`flex h-11 w-11 items-center justify-center rounded-lg border text-sm font-medium peer-focus-visible:ring-2 peer-focus-visible:ring-ring ${
-                  checked ? "border-primary bg-primary text-white" : "border-border-strong hover:bg-subtle"
-                }`}
-              >
-                {n}
-              </span>
-            </label>
-          );
-        })}
-      </div>
-      <div className="mt-1 flex justify-between text-xs text-muted" style={{ maxWidth: `${values.length * 3.25}rem` }}>
-        <span>Low</span>
-        <span>High</span>
+      <legend className="float-left w-full">{heading}</legend>
+      <div className="clear-both pt-5">
+        <div className="flex flex-wrap gap-2.5">
+          {values.map((n) => {
+            const checked = value === n;
+            return (
+              <label key={n} className="cursor-pointer">
+                <input
+                  type="radio"
+                  name={q.id}
+                  value={n}
+                  checked={checked}
+                  onChange={() => onChange(n)}
+                  className="peer sr-only"
+                />
+                <span
+                  className={`press flex h-12 w-12 items-center justify-center rounded-full border text-[17px] tabular-nums transition-[background-color,border-color,color,transform] duration-150 peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-ring ${
+                    checked ? "border-foreground bg-foreground text-white" : "border-border-strong bg-surface hover:border-muted/60"
+                  }`}
+                >
+                  {n}
+                </span>
+              </label>
+            );
+          })}
+        </div>
+        <div
+          className="mt-2 flex justify-between text-xs text-muted"
+          style={{ maxWidth: `${values.length * 3.625 - 0.625}rem` }}
+        >
+          <span>Not at all</span>
+          <span>Very</span>
+        </div>
       </div>
       {errorText}
     </fieldset>

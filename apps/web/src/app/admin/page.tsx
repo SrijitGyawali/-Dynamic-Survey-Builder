@@ -3,10 +3,9 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
-import { ArrowLeft, Loader2 } from "lucide-react";
-import { LogoMark } from "@/components/Logo";
-import { Brand } from "@/components/SiteHeader";
-import { Alert, Button, inputClass } from "@/components/ui";
+import { Loader2 } from "lucide-react";
+import { SiteHeader } from "@/components/SiteHeader";
+import { Alert, Button, inputClass, labelClass } from "@/components/ui";
 import { ApiError } from "@/lib/api";
 import { getToken, login, setToken } from "@/lib/auth";
 
@@ -36,45 +35,24 @@ export default function AdminLoginPage() {
       setToken(res.token);
       router.push("/surveys");
     } catch (err) {
-      if (err instanceof ApiError && err.status === 401) setError("Incorrect email or password.");
+      if (err instanceof ApiError && err.status === 401) setError("That email and password don’t match. Try again.");
       else if (err instanceof ApiError && err.status === 429) setError(err.message);
-      else setError("Couldn't reach the server. It may be waking up, so try again in a moment.");
+      else setError("Couldn’t reach the server. It may be waking up, so try again in a moment.");
       setLoading(false);
     }
   }
 
   return (
-    <div className="grid min-h-[100dvh] bg-background lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
-      {/* Brand panel: fixed brand navy in both themes, like the logo's app tile. */}
-      <aside aria-hidden className="relative hidden overflow-hidden bg-[#161b3d] p-12 text-white lg:flex lg:flex-col">
-        <div className="flex items-center gap-2.5">
-          <LogoMark size={30} inverted />
-          <span className="text-[1.0625rem] font-bold tracking-tight">
-            Survey<span className="text-[#b9a2ff]">Builder</span>
-          </span>
-        </div>
-        <div className="mt-auto max-w-sm">
-          <p className="text-3xl font-semibold leading-tight tracking-tight text-balance">
-            Build the survey once. Watch the answers arrive.
-          </p>
-          <p className="mt-4 text-[#c4c6e2]">
-            Conditional questions, versioned publishing and live results, in one place.
-          </p>
-        </div>
-        <LogoMark size={340} inverted className="pointer-events-none absolute -right-24 -top-16 opacity-[0.07]" />
-      </aside>
+    <div className="flex min-h-screen flex-col">
+      <SiteHeader />
+      <main id="main" className="flex flex-1 justify-center px-5 pb-24 pt-20 sm:pt-28">
+        <div className="w-full max-w-[400px]">
+          <h1 className="type-title text-center">Sign in.</h1>
+          <p className="mt-3 text-center text-muted">Manage surveys and see results.</p>
 
-      <main id="main" className="flex items-center justify-center px-4 py-12 sm:px-6">
-        <div className="w-full max-w-sm">
-          <div className="mb-10 lg:hidden">
-            <Brand />
-          </div>
-          <h1 className="text-2xl font-bold tracking-tight">Admin sign in</h1>
-          <p className="mt-1.5 text-muted">Manage surveys and view results.</p>
-
-          <form onSubmit={onSubmit} className="mt-8 flex flex-col gap-5" noValidate>
+          <form onSubmit={onSubmit} className="mt-10 flex flex-col gap-5" noValidate>
             <div className="flex flex-col gap-2">
-              <label htmlFor="email" className="text-sm font-medium">
+              <label htmlFor="email" className={labelClass}>
                 Email
               </label>
               <input
@@ -87,11 +65,11 @@ export default function AdminLoginPage() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className={`${inputClass} h-11`}
+                className={inputClass}
               />
             </div>
             <div className="flex flex-col gap-2">
-              <label htmlFor="password" className="text-sm font-medium">
+              <label htmlFor="password" className={labelClass}>
                 Password
               </label>
               <input
@@ -102,24 +80,24 @@ export default function AdminLoginPage() {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className={`${inputClass} h-11`}
+                className={inputClass}
               />
             </div>
 
             {error && <Alert kind="error">{error}</Alert>}
 
-            <Button type="submit" disabled={loading} className="mt-1 h-11 w-full">
-              {loading && <Loader2 size={16} className="animate-spin" aria-hidden />}
+            <Button type="submit" disabled={loading} className="mt-3 w-full">
+              {loading && <Loader2 size={17} className="animate-spin" aria-hidden />}
               {loading ? "Signing in…" : "Sign in"}
             </Button>
           </form>
 
-          <div className="mt-8 flex items-center justify-between gap-4 border-t border-border pt-6 text-sm text-muted">
-            <span>Accounts are created by the site owner.</span>
-            <Link href="/" className="inline-flex shrink-0 items-center gap-1 rounded-lg hover:text-foreground">
-              <ArrowLeft size={14} aria-hidden /> Surveys
+          <p className="mt-10 text-center text-sm text-muted">
+            Admin accounts are created by the site owner.{" "}
+            <Link href="/" className="rounded text-primary hover:underline">
+              Back to surveys <span aria-hidden>›</span>
             </Link>
-          </div>
+          </p>
         </div>
       </main>
     </div>

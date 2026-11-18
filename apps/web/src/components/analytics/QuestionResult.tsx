@@ -26,15 +26,15 @@ export function QuestionResult({ q, index, total, token, surveyId, version }: Pr
   const skipped = total - q.answered;
 
   return (
-    <article className="rounded-xl border border-border bg-surface p-5">
+    <article className="rounded-[var(--radius-card)] border border-border bg-surface p-5">
       <header className="mb-4">
         <div className="flex flex-wrap items-center gap-2 text-xs text-muted">
           <span className="font-semibold">Q{index + 1}</span>
           <span>{TYPE_LABELS[q.type]}</span>
-          {q.conditional && <span className="rounded-full bg-primary-soft px-2 py-0.5 text-accent">Conditional</span>}
+          {q.conditional && <span className="rounded-full bg-primary-soft px-2 py-0.5 text-primary-hover">Conditional</span>}
           {q.required && <span>Required</span>}
         </div>
-        <h3 className="mt-1 font-semibold">{q.title}</h3>
+        <h3 className="type-headline mt-2">{q.title}</h3>
         <p className="mt-0.5 text-sm text-muted">
           {q.answered} answered
           {total > 0 && skipped > 0 && (
@@ -90,13 +90,13 @@ function RatingResult({ q }: { q: QuestionStats }) {
       <div>
         <p className="text-sm text-muted">Average</p>
         <p className="text-4xl font-semibold tabular-nums">
-          {r.average?.toFixed(2) ?? "0.00"}
+          {r.average?.toFixed(2) ?? "–"}
           <span className="text-lg font-normal text-muted"> / {r.max}</span>
         </p>
         {/* Thin meter: the average's position on the scale */}
         {r.average !== null && (
           <div
-            className="mt-3 h-2 rounded-full bg-track"
+            className="mt-3 h-2 rounded-full bg-slate-100"
             role="meter"
             aria-valuemin={r.min}
             aria-valuemax={r.max}
@@ -161,7 +161,7 @@ function TextResult({
 
   return (
     <div>
-      <ul className="divide-y divide-border rounded-lg border border-border">
+      <ul className="divide-y divide-border rounded-xl border border-border">
         {answers.map((a) => (
           <li key={a.responseId} className="flex flex-col gap-1 px-3 py-2.5 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4">
             <p className="whitespace-pre-line text-sm text-foreground">{a.answer}</p>
@@ -176,7 +176,7 @@ function TextResult({
           Showing {answers.length} of {q.answered}
         </span>
         {more && (
-          <button type="button" onClick={loadMore} disabled={loading} className="text-accent hover:underline disabled:opacity-50">
+          <button type="button" onClick={loadMore} disabled={loading} className="text-primary hover:underline disabled:opacity-50">
             {loading ? "Loading…" : "Load more"}
           </button>
         )}

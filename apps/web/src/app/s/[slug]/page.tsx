@@ -2,9 +2,9 @@
 
 import { useParams } from "next/navigation";
 import { FormEvent, useEffect, useMemo, useState } from "react";
-import { ArrowLeft, CheckCircle2, Loader2 } from "lucide-react";
-import { SiteHeader } from "@/components/SiteHeader";
-import { Alert, Button, LinkButton, Skeleton } from "@/components/ui";
+import { CheckCircle2, Loader2 } from "lucide-react";
+import { SiteFooter, SiteHeader } from "@/components/SiteHeader";
+import { Alert, Button, ChevronLink, Skeleton } from "@/components/ui";
 import { QuestionField } from "@/components/form/QuestionField";
 import { ApiError } from "@/lib/api";
 import { isEmpty, pruneAnswers, validateAnswers, visibleIds } from "@/lib/answers";
@@ -107,69 +107,73 @@ export default function PublicSurveyPage() {
   const progress = shown.length ? Math.round((answeredCount / shown.length) * 100) : 0;
 
   return (
-    <div className="min-h-[100dvh] bg-background">
+    <div className="flex min-h-screen flex-col">
       <SiteHeader />
       {survey && (
-        // Thin progress bar under the header; the counter below repeats it as text.
-        <div className="sticky top-0 z-10 h-1 bg-track" aria-hidden>
+        // Hairline progress bar under the header; the counter below repeats it as text.
+        <div className="sticky top-12 z-20 h-[2px] bg-border/60" aria-hidden>
           <div className="h-full bg-primary transition-[width] duration-300" style={{ width: `${progress}%` }} />
         </div>
       )}
-      <main id="main" className="mx-auto max-w-2xl px-4 py-10">
+      <main id="main" className="mx-auto w-full max-w-[692px] flex-1 px-5 pb-24 pt-14 sm:pt-20">
         {phase.kind === "loading" && (
-          <div className="flex flex-col gap-4" aria-busy="true" aria-label="Loading survey">
-            <Skeleton className="h-32 w-full" />
-            <Skeleton className="h-28 w-full" />
-            <Skeleton className="h-28 w-full" />
+          <div aria-busy="true" aria-label="Loading survey">
+            <Skeleton className="mx-auto h-12 w-3/4" />
+            <Skeleton className="mx-auto mt-4 h-5 w-1/2" />
+            <Skeleton className="mt-16 h-7 w-2/3" />
+            <Skeleton className="mt-5 h-24 w-full" />
           </div>
         )}
 
         {phase.kind === "unavailable" && (
-          <div className="rounded-xl border border-border bg-surface p-8 text-center">
-            <h1 className="text-xl font-semibold">{phase.title}</h1>
-            <p className="mt-2 text-muted">{phase.text}</p>
-            <LinkButton href="/" variant="secondary" className="mt-5">
-              <ArrowLeft size={16} aria-hidden /> See open surveys
-            </LinkButton>
+          <div className="pt-6 text-center">
+            <h1 className="type-title">{phase.title}</h1>
+            <p className="type-lead mx-auto mt-4 max-w-md text-muted">{phase.text}</p>
+            <ChevronLink href="/" className="mt-8">
+              See open surveys
+            </ChevronLink>
           </div>
         )}
 
         {phase.kind === "submitted" && (
-          <div className="rounded-xl border border-border bg-surface p-8 text-center" role="status">
-            <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-primary-soft text-accent">
-              <CheckCircle2 size={28} aria-hidden />
-            </div>
-            <h1 className="text-xl font-semibold">Thank you!</h1>
-            <p className="mt-2 text-muted">Your response to “{phase.survey.title}” has been recorded.</p>
-            <LinkButton href="/" variant="secondary" className="mt-5">
-              <ArrowLeft size={16} aria-hidden /> See other surveys
-            </LinkButton>
+          <div className="pt-6 text-center" role="status">
+            <CheckCircle2 size={44} strokeWidth={1.5} className="mx-auto text-primary" aria-hidden />
+            <h1 className="type-title mt-6">Thank you.</h1>
+            <p className="type-lead mx-auto mt-4 max-w-md text-muted">
+              Your response to “{phase.survey.title}” has been recorded.
+            </p>
+            <ChevronLink href="/" className="mt-8">
+              See other surveys
+            </ChevronLink>
           </div>
         )}
 
         {survey && (
-          <form onSubmit={onSubmit} noValidate className="flex flex-col gap-4">
-            <header className="rounded-xl border border-border border-t-4 border-t-primary bg-surface p-6">
-              <h1 className="text-2xl font-semibold tracking-tight text-balance">{survey.title}</h1>
-              {survey.description && <p className="mt-2 whitespace-pre-line text-muted">{survey.description}</p>}
-              <p className="mt-4 text-sm text-muted">
-                <span className="text-danger" aria-hidden>
-                  *
-                </span>{" "}
-                Required question
+          <form onSubmit={onSubmit} noValidate>
+            <header className="pb-12 text-center">
+              <h1 className="type-title text-balance">{survey.title}</h1>
+              {survey.description && (
+                <p className="type-lead mx-auto mt-4 max-w-xl whitespace-pre-line text-pretty text-muted">
+                  {survey.description}
+                </p>
+              )}
+              <p className="mt-6 text-sm text-muted">
+                {shown.length} question{shown.length === 1 ? "" : "s"} · Questions are required unless marked optional.
               </p>
             </header>
 
-            {shown.map((q, i) => (
-              <QuestionField
-                key={q.id}
-                question={q}
-                number={i + 1}
-                value={answers[q.id]}
-                error={errors[q.id]}
-                onChange={(v) => setAnswer(q.id, v)}
-              />
-            ))}
+            <div className="border-t border-border">
+              {shown.map((q, i) => (
+                <QuestionField
+                  key={q.id}
+                  question={q}
+                  number={i + 1}
+                  value={answers[q.id]}
+                  error={errors[q.id]}
+                  onChange={(v) => setAnswer(q.id, v)}
+                />
+              ))}
+            </div>
 
             {/* Honeypot: hidden from people and screen readers; bots tend to fill it. */}
             <div aria-hidden className="absolute -left-[9999px] h-px w-px overflow-hidden">
@@ -185,30 +189,35 @@ export default function PublicSurveyPage() {
               </label>
             </div>
 
-            {banner && <Alert kind="error">{banner}</Alert>}
+            {banner && (
+              <div className="mb-6">
+                <Alert kind="error">{banner}</Alert>
+              </div>
+            )}
 
-            <div className="flex items-center justify-between gap-4 pt-2">
+            <div className="flex flex-col-reverse items-center gap-4 border-t border-border pt-10 sm:flex-row sm:justify-between">
               <span className="text-sm text-muted" aria-live="polite">
                 {answeredCount} of {shown.length} answered
               </span>
-              <Button type="submit" disabled={submitting} className="px-6">
-                {submitting && <Loader2 size={16} className="animate-spin" aria-hidden />}
+              <Button type="submit" disabled={submitting} className="w-full sm:w-auto sm:min-w-40">
+                {submitting && <Loader2 size={17} className="animate-spin" aria-hidden />}
                 {submitting ? "Submitting…" : "Submit"}
               </Button>
             </div>
           </form>
         )}
       </main>
+      <SiteFooter />
     </div>
   );
 }
 
 function unavailable(err: unknown): Phase {
   if (err instanceof ApiError && err.status === 410) {
-    return { kind: "unavailable", title: "This survey is closed", text: "It is no longer accepting responses." };
+    return { kind: "unavailable", title: "This survey has closed.", text: "It is no longer accepting responses." };
   }
   if (err instanceof ApiError && err.status === 404) {
-    return { kind: "unavailable", title: "Survey not found", text: "Check the link, or ask the sender for a new one." };
+    return { kind: "unavailable", title: "Survey not found.", text: "Check the link, or ask the sender for a new one." };
   }
   return { kind: "unavailable", title: "Something went wrong", text: "Could not load the survey. Please try again later." };
 }

@@ -2,9 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
-import { ArrowRight, Clock, ListChecks, RefreshCw, ShieldCheck } from "lucide-react";
-import { LogoMark } from "@/components/Logo";
-import { SiteHeader } from "@/components/SiteHeader";
+import { SiteFooter, SiteHeader } from "@/components/SiteHeader";
 import { Button, Skeleton } from "@/components/ui";
 import { listPublicSurveys, type ListedSurvey } from "@/lib/public";
 
@@ -25,118 +23,87 @@ export default function HomePage() {
 
   useEffect(load, [load]);
 
+  const count = surveys?.length ?? 0;
+
   return (
-    <div className="flex min-h-[100dvh] flex-col bg-background">
+    <div className="flex min-h-screen flex-col">
       <SiteHeader />
-      <main id="main" className="mx-auto w-full max-w-5xl flex-1 px-4 sm:px-6">
-        {/* Hero: left-aligned message, the brand tile as the visual (hidden on phones). */}
-        <section className="grid items-center gap-10 py-12 sm:py-16 md:grid-cols-[1fr_auto]">
-          <div className="max-w-xl">
-            <h1 className="text-4xl font-bold leading-[1.1] tracking-tight text-balance sm:text-5xl">
-              Your answers shape <span className="text-accent">what gets built</span>
-            </h1>
-            <p className="mt-4 max-w-[52ch] text-lg leading-relaxed text-muted text-pretty">
-              Pick a survey below. No account needed, and most take about two minutes.
-            </p>
-            <p className="mt-6 inline-flex items-center gap-2 text-sm text-muted">
-              <ShieldCheck size={16} aria-hidden className="text-accent" />
-              Responses are anonymous. We keep your answers, not your identity.
-            </p>
-          </div>
-          <div aria-hidden className="hidden md:block">
-            <div className="relative">
-              <div className="absolute -inset-6 -z-10 rounded-[2rem] bg-primary-soft" />
-              <div className="flex h-44 w-44 rotate-[-4deg] items-center justify-center rounded-[2.25rem] bg-[#161b3d] shadow-raised">
-                <LogoMark size={104} inverted />
-              </div>
-            </div>
-          </div>
+
+      <main id="main" className="flex-1">
+        {/* Hero: type only, centred, lots of air */}
+        <section className="px-5 pb-16 pt-20 text-center sm:pb-20 sm:pt-28">
+          <h1 className="type-hero mx-auto max-w-3xl text-balance">Your opinion, in a few minutes.</h1>
+          <p className="type-lead mx-auto mt-5 max-w-xl text-pretty text-muted">
+            Choose a survey below and answer at your own pace. No account, no sign-up.
+          </p>
         </section>
 
-        <section aria-labelledby="open-surveys" className="pb-16">
-          <div className="mb-5 flex items-baseline justify-between gap-4">
-            <h2 id="open-surveys" className="text-xl font-semibold tracking-tight">
-              Open surveys
-            </h2>
-            {surveys && surveys.length > 0 && (
-              <span className="text-sm tabular-nums text-muted">
-                {surveys.length} available
-              </span>
+        {/* Survey list on the alternate surface */}
+        <section aria-labelledby="open-surveys" className="bg-subtle px-5 py-16 sm:py-20">
+          <div className="mx-auto max-w-[980px]">
+            <div className="mb-8 flex items-baseline justify-between gap-4">
+              <h2 id="open-surveys" className="type-headline">
+                Open surveys
+              </h2>
+              {surveys && count > 0 && (
+                <p className="text-sm text-muted">
+                  {count} available
+                </p>
+              )}
+            </div>
+
+            {error ? (
+              <div className="rounded-[var(--radius-card)] bg-surface px-6 py-12 text-center">
+                <p className="type-headline">Surveys didn&apos;t load.</p>
+                <p className="mx-auto mt-2 max-w-md text-muted">
+                  The server may be waking up, which can take up to a minute on free hosting.
+                </p>
+                <Button variant="secondary" className="mt-6" onClick={load}>
+                  Try again
+                </Button>
+              </div>
+            ) : surveys === null ? (
+              <ul className="grid gap-5 sm:grid-cols-2" aria-busy="true" aria-label="Loading surveys">
+                {[0, 1, 2, 3].map((i) => (
+                  <li key={i} className="rounded-[var(--radius-card)] bg-surface p-7">
+                    <Skeleton className="h-6 w-2/3" />
+                    <Skeleton className="mt-4 h-4 w-full" />
+                    <Skeleton className="mt-2 h-4 w-4/5" />
+                    <Skeleton className="mt-8 h-4 w-1/3" />
+                  </li>
+                ))}
+              </ul>
+            ) : count === 0 ? (
+              <div className="rounded-[var(--radius-card)] bg-surface px-6 py-14 text-center">
+                <p className="type-headline">No open surveys right now.</p>
+                <p className="mt-2 text-muted">Check back later, or use the link you were sent.</p>
+              </div>
+            ) : (
+              <ul className="grid gap-5 sm:grid-cols-2">
+                {surveys.map((s) => (
+                  <li key={s.slug}>
+                    <Link
+                      href={`/s/${s.slug}`}
+                      className="group flex h-full flex-col rounded-[var(--radius-card)] bg-surface p-7 transition-transform duration-200 hover:-translate-y-0.5"
+                    >
+                      <p className="text-xs font-semibold uppercase tracking-[0.08em] text-muted">
+                        {s.questionCount} question{s.questionCount === 1 ? "" : "s"} · ~{minutes(s.questionCount)} min
+                      </p>
+                      <h3 className="type-headline mt-3">{s.title}</h3>
+                      {s.description && <p className="mt-2 line-clamp-2 text-muted">{s.description}</p>}
+                      <span className="mt-auto pt-8 text-primary group-hover:underline">
+                        Start survey <span aria-hidden>›</span>
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
             )}
           </div>
-
-          {error ? (
-            <div className="rounded-xl border border-border bg-surface p-8 text-center shadow-card">
-              <p className="font-semibold">We couldn&apos;t load the surveys</p>
-              <p className="mx-auto mt-1 max-w-sm text-sm text-muted">
-                The server may be waking up, which can take up to a minute on the free hosting plan.
-              </p>
-              <Button variant="secondary" className="mt-5" onClick={load}>
-                <RefreshCw size={16} aria-hidden /> Try again
-              </Button>
-            </div>
-          ) : surveys === null ? (
-            <ul className="grid gap-4 sm:grid-cols-2" aria-busy="true" aria-label="Loading surveys">
-              {[0, 1, 2, 3].map((i) => (
-                <li key={i} className="rounded-xl border border-border bg-surface p-6 shadow-card">
-                  <Skeleton className="h-5 w-2/3" />
-                  <Skeleton className="mt-3 h-4 w-full" />
-                  <Skeleton className="mt-2 h-4 w-4/5" />
-                  <Skeleton className="mt-8 h-9 w-full" />
-                </li>
-              ))}
-            </ul>
-          ) : surveys.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-border-strong bg-surface p-10 text-center">
-              <span className="mx-auto flex h-11 w-11 items-center justify-center rounded-xl bg-primary-soft text-accent">
-                <ListChecks size={22} aria-hidden />
-              </span>
-              <p className="mt-4 font-semibold">No open surveys right now</p>
-              <p className="mt-1 text-sm text-muted">Check back later, or use the link you were sent.</p>
-            </div>
-          ) : (
-            <ul className="grid gap-4 sm:grid-cols-2">
-              {surveys.map((s) => (
-                <li key={s.slug}>
-                  <Link
-                    href={`/s/${s.slug}`}
-                    className="group flex h-full flex-col rounded-xl border border-border bg-surface p-6 shadow-card transition-[border-color,box-shadow,transform] duration-300 ease-out-expo hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-raised"
-                  >
-                    <h3 className="text-lg font-semibold tracking-tight text-balance">{s.title}</h3>
-                    {s.description && (
-                      <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-muted">{s.description}</p>
-                    )}
-                    <div className="mt-auto flex items-center justify-between gap-4 pt-6">
-                      <span className="inline-flex items-center gap-1.5 text-sm text-muted">
-                        <Clock size={15} aria-hidden />
-                        <span className="tabular-nums">
-                          {s.questionCount} question{s.questionCount === 1 ? "" : "s"}, about {minutes(s.questionCount)} min
-                        </span>
-                      </span>
-                      <span className="inline-flex items-center gap-1 rounded-full bg-primary-soft px-3 py-1.5 text-sm font-semibold text-accent transition-colors duration-200 group-hover:bg-primary group-hover:text-white">
-                        Start
-                        <ArrowRight
-                          size={15}
-                          aria-hidden
-                          className="transition-transform duration-300 ease-out-expo group-hover:translate-x-0.5"
-                        />
-                      </span>
-                    </div>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          )}
         </section>
       </main>
-      <footer className="border-t border-border">
-        <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-3 px-4 py-6 text-sm text-muted sm:px-6">
-          <span translate="no">Survey Builder</span>
-          <Link href="/admin" className="rounded-lg hover:text-foreground">
-            Admin sign-in
-          </Link>
-        </div>
-      </footer>
+
+      <SiteFooter />
     </div>
   );
 }

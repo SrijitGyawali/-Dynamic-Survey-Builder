@@ -3,10 +3,10 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useCallback, useEffect, useState } from "react";
-import { BarChart3, ClipboardList, Globe, Pencil, Plus, Trash2 } from "lucide-react";
+import { ClipboardList, Globe, Plus, Trash2 } from "lucide-react";
 import { AdminHeader } from "@/components/AdminHeader";
 import { AdminLoading } from "@/components/AdminLoading";
-import { Alert, Button, Card, IconButton, LinkButton, Skeleton, inputClass } from "@/components/ui";
+import { Alert, Button, Card, ChevronLink, IconButton, Skeleton, inputClass, labelClass } from "@/components/ui";
 import { StatusBadge } from "@/components/StatusBadge";
 import { ApiError } from "@/lib/api";
 import { useAdmin } from "@/lib/auth";
@@ -65,20 +65,20 @@ export default function SurveysPage() {
   if (!admin) return <AdminLoading />;
 
   return (
-    <div className="min-h-[100dvh] bg-background">
+    <div className="min-h-screen bg-subtle">
       <AdminHeader email={admin.email} onLogout={logout} />
-      <main id="main" className="mx-auto max-w-5xl px-4 py-8">
+      <main id="main" className="mx-auto max-w-[1068px] px-5 py-12">
         <div className="mb-6">
-          <h1 className="text-2xl font-semibold tracking-tight">Surveys</h1>
+          <h1 className="type-title">Surveys</h1>
           <p className="mt-1 text-sm text-muted">Create a survey, build its questions, then publish it to share.</p>
         </div>
 
         <Card className="mb-8 p-5">
           <form onSubmit={onCreate} noValidate>
-            <h2 className="font-semibold">New survey</h2>
+            <h2 className="type-headline">New survey</h2>
             <div className="mt-4 grid gap-4 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
               <div className="flex flex-col gap-1.5">
-                <label htmlFor="new-title" className="text-sm font-medium">Title</label>
+                <label htmlFor="new-title" className={labelClass}>Title</label>
                 <input
                   id="new-title"
                   placeholder="e.g. Customer feedback…"
@@ -91,7 +91,7 @@ export default function SurveysPage() {
                 />
               </div>
               <div className="flex flex-col gap-1.5">
-                <label htmlFor="new-desc" className="text-sm font-medium">
+                <label htmlFor="new-desc" className={labelClass}>
                   Description <span className="font-normal text-muted">(optional)</span>
                 </label>
                 <input
@@ -132,7 +132,7 @@ export default function SurveysPage() {
             ))}
           </Card>
         ) : surveys.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-border-strong bg-surface p-10 text-center">
+          <div className="rounded-[var(--radius-card)] border border-dashed border-border-strong bg-surface p-10 text-center">
             <ClipboardList className="mx-auto text-muted" size={28} aria-hidden />
             <p className="mt-3 font-medium">No surveys yet</p>
             <p className="mt-1 text-sm text-muted">Give your first survey a title above to get started.</p>
@@ -144,7 +144,7 @@ export default function SurveysPage() {
                 <li key={s.id} className="flex flex-col gap-3 p-5 sm:flex-row sm:items-center sm:justify-between">
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
-                      <Link href={`/surveys/${s.id}`} className="truncate rounded font-medium hover:text-accent">
+                      <Link href={`/surveys/${s.id}`} className="truncate rounded text-[17px] font-semibold tracking-[-0.01em] hover:text-primary">
                         {s.title}
                       </Link>
                       <StatusBadge status={s.status} />
@@ -163,13 +163,13 @@ export default function SurveysPage() {
                     </p>
                   </div>
                   <div className="flex shrink-0 items-center gap-2">
-                    <LinkButton href={`/surveys/${s.id}`} variant="secondary" size="sm">
-                      <Pencil size={14} aria-hidden /> Edit
-                    </LinkButton>
+                    <ChevronLink href={`/surveys/${s.id}`} className="px-2 py-2 text-[15px]">
+                      Edit
+                    </ChevronLink>
                     {s.currentVersion !== null && (
-                      <LinkButton href={`/surveys/${s.id}/analytics`} variant="secondary" size="sm">
-                        <BarChart3 size={14} aria-hidden /> Results
-                      </LinkButton>
+                      <ChevronLink href={`/surveys/${s.id}/analytics`} className="px-2 py-2 text-[15px]">
+                        Results
+                      </ChevronLink>
                     )}
                     <IconButton label={`Delete ${s.title}`} tone="danger" onClick={() => onDelete(s)}>
                       <Trash2 size={16} aria-hidden />

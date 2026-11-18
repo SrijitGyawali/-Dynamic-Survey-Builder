@@ -30,6 +30,13 @@ func (f *fakePublic) GetPublicSurvey(_ context.Context, slug string) (store.Publ
 	return f.survey, nil
 }
 
+func (f *fakePublic) ListListedSurveys(_ context.Context, limit int) ([]store.ListedSurvey, error) {
+	if f.survey.Status != "published" {
+		return []store.ListedSurvey{}, nil
+	}
+	return []store.ListedSurvey{{Title: f.survey.Title, Slug: f.survey.Slug, QuestionCount: 1}}, nil
+}
+
 func (f *fakePublic) GetVersion(_ context.Context, _ string, v int) (string, []byte, error) {
 	if v == 1 {
 		return "ver-1", []byte(v1Schema), nil
@@ -51,6 +58,7 @@ func newPublic(status string) (*PublicHandler, *fakePublic, http.Handler) {
 	}}
 	h := &PublicHandler{repo: f, ipHashKey: []byte("k")}
 	r := chi.NewRouter()
+	r.Get("/s", h.List)
 	r.Get("/s/{slug}", h.Get)
 	r.Post("/s/{slug}", h.Submit)
 	return h, f, r
@@ -152,5 +160,24 @@ func TestHoneypot(t *testing.T) {
 	}
 	if len(f.saved) != 0 {
 		t.Fatal("honeypot submissions must not be stored")
+	}
+}
+
+func TestPublicList(t *testing.T) {
+	_, _, r := newPublic("published")
+	rec := call(r, "GET", "/s", "")
+	if rec.Code != http.StatusOK {
+		t.Fatalf("got %d", rec.Code)
+	}
+	var list []map[string]any
+	if err := json.NewDecoder(rec.Body).Decode(&list); err != nil || len(list) != 1 || list[0]["slug"] != "my-survey" {
+		t.Fatalf("list = %v (%v)", list, err)
+	}
+	if strings.Contains(rec.Body.String(), "schema") || strings.Contains(rec.Body.String(), "s1") {
+		t.Fatal("homepage list must not expose schemas or internal ids")
+	}
+	_, _, r = newPublic("draft")
+	if rec := call(r, "GET", "/s", ""); strings.TrimSpace(rec.Body.String()) != "[]" {
+		t.Fatalf("empty list should be [], got %s", rec.Body)
 	}
 }

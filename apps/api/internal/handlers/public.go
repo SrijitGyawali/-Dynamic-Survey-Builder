@@ -9,6 +9,7 @@ import (
 	"errors"
 	"log/slog"
 	"net/http"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 
@@ -18,6 +19,7 @@ import (
 )
 
 type publicRepo interface {
+	ListListedSurveys(ctx context.Context, limit int) ([]store.ListedSurvey, error)
 	GetPublicSurvey(ctx context.Context, slug string) (store.PublicSurvey, error)
 	GetVersion(ctx context.Context, surveyID string, version int) (string, []byte, error)
 	CreateResponse(ctx context.Context, surveyID, versionID string, answers []byte, ipHash string) (string, error)
@@ -44,6 +46,32 @@ type submitInput struct {
 	// Honeypot: a hidden form field humans never fill. Bots that fill every
 	// input reveal themselves here.
 	Website string `json:"website"`
+}
+
+type listedSurveyDTO struct {
+	Title         string    `json:"title"`
+	Description   string    `json:"description"`
+	Slug          string    `json:"slug"`
+	QuestionCount int       `json:"questionCount"`
+	PublishedAt   time.Time `json:"publishedAt"`
+}
+
+const maxListed = 50
+
+// List serves the homepage: published surveys whose admin chose "Show on homepage".
+func (h *PublicHandler) List(w http.ResponseWriter, r *http.Request) {
+	list, err := h.repo.ListListedSurveys(r.Context(), maxListed)
+	if err != nil {
+		internalError(w, err)
+		return
+	}
+	out := make([]listedSurveyDTO, len(list))
+	for i, l := range list {
+		out[i] = listedSurveyDTO{l.Title, l.Description, l.Slug, l.QuestionCount, l.PublishedAt}
+	}
+	// Short shared cache: the list changes rarely, and a stale minute is harmless.
+	w.Header().Set("Cache-Control", "public, max-age=60")
+	writeJSON(w, http.StatusOK, out)
 }
 
 // loadOpen returns the survey if it's accepting responses, or writes 404/410.

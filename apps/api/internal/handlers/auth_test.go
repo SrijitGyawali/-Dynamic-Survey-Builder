@@ -43,7 +43,7 @@ func (f *fakeAdmins) GetAdminByEmail(_ context.Context, email string) (store.Adm
 
 func newTestAuth() (*AuthHandler, *auth.TokenManager) {
 	tm := auth.NewTokenManager("test-secret-that-is-at-least-32-characters")
-	return &AuthHandler{admins: newFakeAdmins(), tokens: tm}, tm
+	return &AuthHandler{admins: newFakeAdmins(), tokens: tm, allowRegistration: true}, tm
 }
 
 func post(h http.HandlerFunc, body string) *httptest.ResponseRecorder {
@@ -119,5 +119,17 @@ func TestLoginFlow(t *testing.T) {
 	tm.RequireAdmin(http.HandlerFunc(h.Me)).ServeHTTP(meRec, req)
 	if meRec.Code != http.StatusOK || !strings.Contains(meRec.Body.String(), "admin@x.io") {
 		t.Fatalf("me: %d %s", meRec.Code, meRec.Body)
+	}
+}
+
+func TestRegistrationDisabled(t *testing.T) {
+	h, _ := newTestAuth()
+	h.allowRegistration = false
+	rec := post(h.Register, `{"email":"new@x.io","password":"password1"}`)
+	if rec.Code != http.StatusForbidden {
+		t.Fatalf("got %d, want 403", rec.Code)
+	}
+	if _, err := h.admins.GetAdminByEmail(context.Background(), "new@x.io"); err == nil {
+		t.Fatal("no admin may be created while registration is disabled")
 	}
 }

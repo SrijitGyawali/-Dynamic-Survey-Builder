@@ -26,7 +26,7 @@ type API struct {
 func NewRouter(ctx context.Context, cfg config.Config, st *store.Store) http.Handler {
 	api := &API{cfg: cfg, store: st}
 	tokens := auth.NewTokenManager(cfg.JWTSecret)
-	authH := &AuthHandler{admins: st, tokens: tokens}
+	authH := &AuthHandler{admins: st, tokens: tokens, allowRegistration: cfg.AllowRegistration}
 	surveyH := &SurveyHandler{surveys: st}
 	analyticsH := &AnalyticsHandler{store: st}
 	publicH := &PublicHandler{repo: st, ipHashKey: []byte("ip-hash:" + cfg.JWTSecret)}
@@ -78,6 +78,7 @@ func NewRouter(ctx context.Context, cfg config.Config, st *store.Store) http.Han
 		})
 
 		// Public routes (no auth, rate limited).
+		r.With(readLimit.Middleware).Get("/public/surveys", publicH.List)
 		r.Route("/public/surveys/{slug}", func(r chi.Router) {
 			r.With(readLimit.Middleware).Get("/", publicH.Get)
 			r.With(submitLimit.Middleware).Post("/responses", publicH.Submit)

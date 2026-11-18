@@ -42,6 +42,17 @@ func run() error {
 	}
 	defer st.Close()
 
+	// The single admin is created at deploy time from env; public registration
+	// is off unless ALLOW_REGISTRATION=true.
+	if cfg.AdminEmail != "" {
+		if _, err := seed.EnsureAdmin(ctx, st, cfg.AdminEmail, cfg.AdminPassword); err != nil {
+			return err
+		}
+		slog.Info("admin account ready", "email", cfg.AdminEmail)
+	} else if !cfg.AllowRegistration && !cfg.SeedDemo {
+		slog.Warn("no ADMIN_EMAIL set and registration is disabled: nobody can log in")
+	}
+
 	// Hosted demo: load demo data on startup (idempotent). A failure here is
 	// logged but doesn't stop the API from serving.
 	if cfg.SeedDemo {

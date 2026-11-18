@@ -16,6 +16,7 @@ import (
 	"log/slog"
 	"math/rand/v2"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -32,13 +33,14 @@ const demoSlug = DemoSlug // short alias used below
 
 // Run seeds the demo data. It is idempotent: if the demo survey already exists
 // it does nothing, unless reset is true (then the demo survey is recreated).
-// The admin account is taken from SEED_ADMIN_EMAIL / SEED_ADMIN_PASSWORD
-// (defaults: demo@example.com / demo-pass-123) and is never overwritten.
+// The demo survey belongs to the single admin from ADMIN_EMAIL / ADMIN_PASSWORD
+// (defaults: demo@example.com / demo-pass-123), which is created if missing
+// and never overwritten.
 func Run(ctx context.Context, st *store.Store, reset bool) error {
-	email := envOr("SEED_ADMIN_EMAIL", "demo@example.com")
-	password := envOr("SEED_ADMIN_PASSWORD", "demo-pass-123")
+	email := strings.ToLower(strings.TrimSpace(envOr("ADMIN_EMAIL", "demo@example.com")))
+	password := envOr("ADMIN_PASSWORD", "demo-pass-123")
 
-	adminID, err := ensureAdmin(ctx, st, email, password)
+	adminID, err := EnsureAdmin(ctx, st, email, password)
 	if err != nil {
 		return err
 	}
@@ -65,8 +67,8 @@ func Run(ctx context.Context, st *store.Store, reset bool) error {
 
 	var surveyID string
 	if err := tx.QueryRow(ctx, `
-		INSERT INTO surveys (admin_id, title, description, slug, status, created_at)
-		VALUES ($1, 'Customer Satisfaction', 'A short survey about how you use the product. Takes about 2 minutes.', $2, 'published', now() - interval '30 days')
+		INSERT INTO surveys (admin_id, title, description, slug, status, listed, created_at)
+		VALUES ($1, 'Customer Satisfaction', 'A short survey about how you use the product. Takes about 2 minutes.', $2, 'published', true, now() - interval '30 days')
 		RETURNING id`, adminID, demoSlug).Scan(&surveyID); err != nil {
 		return err
 	}
@@ -125,7 +127,10 @@ func Run(ctx context.Context, st *store.Store, reset bool) error {
 	return nil
 }
 
-func ensureAdmin(ctx context.Context, st *store.Store, email, password string) (string, error) {
+// EnsureAdmin returns the admin with this email, creating it if it doesn't
+// exist. An existing admin's password is never changed. Used on startup to
+// create the single admin account (public registration is disabled).
+func EnsureAdmin(ctx context.Context, st *store.Store, email, password string) (string, error) {
 	a, err := st.GetAdminByEmail(ctx, email)
 	if err == nil {
 		return a.ID, nil

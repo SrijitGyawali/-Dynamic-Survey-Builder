@@ -23,6 +23,9 @@ type adminRepo interface {
 type AuthHandler struct {
 	admins adminRepo
 	tokens *auth.TokenManager
+	// allowRegistration is off in production: the single admin is created at
+	// deploy time from ADMIN_EMAIL / ADMIN_PASSWORD (see cmd/server).
+	allowRegistration bool
 }
 
 type credentials struct {
@@ -65,6 +68,10 @@ func (c credentials) validate() map[string]string {
 }
 
 func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
+	if !h.allowRegistration {
+		writeError(w, http.StatusForbidden, "registration is disabled", nil)
+		return
+	}
 	var in credentials
 	if !decodeJSON(w, r, &in) {
 		return

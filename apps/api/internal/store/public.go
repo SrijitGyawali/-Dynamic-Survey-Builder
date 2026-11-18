@@ -3,6 +3,7 @@ package store
 import (
 	"context"
 	"errors"
+	"time"
 
 	"github.com/jackc/pgx/v5"
 )
@@ -32,6 +33,35 @@ func (s *Store) GetPublicSurvey(ctx context.Context, slug string) (PublicSurvey,
 		return PublicSurvey{}, ErrNotFound
 	}
 	return p, err
+}
+
+// ListedSurvey is a homepage card: only public, published information.
+type ListedSurvey struct {
+	Title         string
+	Description   string
+	Slug          string
+	QuestionCount int
+	PublishedAt   time.Time // when the live version was published
+}
+
+// ListListedSurveys returns published surveys the admin chose to show on the
+// homepage, newest first. Unlisted surveys stay reachable by link only.
+func (s *Store) ListListedSurveys(ctx context.Context, limit int) ([]ListedSurvey, error) {
+	rows, err := s.Pool.Query(ctx, `
+		SELECT s.title, s.description, s.slug,
+		       COALESCE(jsonb_array_length(v.schema->'questions'), 0), v.created_at
+		FROM surveys s
+		JOIN survey_versions v ON v.id = s.current_version_id
+		WHERE s.status = 'published' AND s.listed
+		ORDER BY v.created_at DESC
+		LIMIT $1`, limit)
+	if err != nil {
+		return nil, err
+	}
+	return pgx.CollectRows(rows, func(row pgx.CollectableRow) (ListedSurvey, error) {
+		var l ListedSurvey
+		return l, row.Scan(&l.Title, &l.Description, &l.Slug, &l.QuestionCount, &l.PublishedAt)
+	})
 }
 
 // GetVersion loads a specific published version of a survey. Used when a

@@ -21,7 +21,7 @@ type surveyRepo interface {
 	ListSurveys(ctx context.Context, adminID string) ([]store.Survey, error)
 	GetSurvey(ctx context.Context, adminID, id string) (store.Survey, error)
 	CreateSurvey(ctx context.Context, adminID, title, description string) (store.Survey, error)
-	UpdateSurvey(ctx context.Context, adminID, id, title, description string, draft []byte) (store.Survey, error)
+	UpdateSurvey(ctx context.Context, adminID, id, title, description string, draft []byte, listed *bool) (store.Survey, error)
 	DeleteSurvey(ctx context.Context, adminID, id string) error
 	PublishSurvey(ctx context.Context, adminID, id string, validate func([]byte) error) (bool, error)
 	CloseSurvey(ctx context.Context, adminID, id string) error
@@ -40,6 +40,7 @@ type surveyDTO struct {
 	Description           string          `json:"description"`
 	Slug                  string          `json:"slug"`
 	Status                string          `json:"status"`
+	Listed                bool            `json:"listed"`
 	DraftSchema           json.RawMessage `json:"draftSchema,omitempty"`
 	CurrentVersion        *int            `json:"currentVersion"`
 	HasUnpublishedChanges bool            `json:"hasUnpublishedChanges"`
@@ -50,7 +51,7 @@ type surveyDTO struct {
 
 func toDTO(s store.Survey, withSchema bool) surveyDTO {
 	d := surveyDTO{
-		ID: s.ID, Title: s.Title, Description: s.Description, Slug: s.Slug, Status: s.Status,
+		ID: s.ID, Title: s.Title, Description: s.Description, Slug: s.Slug, Status: s.Status, Listed: s.Listed,
 		CurrentVersion: s.CurrentVersion, HasUnpublishedChanges: s.HasUnpublishedChanges,
 		QuestionCount: s.QuestionCount, CreatedAt: s.CreatedAt, UpdatedAt: s.UpdatedAt,
 	}
@@ -76,6 +77,8 @@ type surveyMeta struct {
 type updateSurveyInput struct {
 	surveyMeta
 	DraftSchema *survey.Schema `json:"draftSchema"`
+	// Listed: show on the public homepage once published. Omitted = unchanged.
+	Listed *bool `json:"listed"`
 }
 
 const (
@@ -178,7 +181,7 @@ func (h *SurveyHandler) Update(w http.ResponseWriter, r *http.Request) {
 		internalError(w, err)
 		return
 	}
-	s, err := h.surveys.UpdateSurvey(r.Context(), admin.ID, id, in.Title, in.Description, draft)
+	s, err := h.surveys.UpdateSurvey(r.Context(), admin.ID, id, in.Title, in.Description, draft, in.Listed)
 	if writeStoreError(w, err) {
 		return
 	}

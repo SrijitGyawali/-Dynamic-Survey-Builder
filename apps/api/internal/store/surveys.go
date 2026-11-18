@@ -21,6 +21,8 @@ type Survey struct {
 	Description string
 	Slug        string
 	Status      string
+	// Listed: show on the public homepage when published.
+	Listed      bool
 	DraftSchema []byte // raw JSONB
 	// Version number of the published snapshot, nil if never published.
 	CurrentVersion *int
@@ -41,7 +43,7 @@ type SurveyVersion struct {
 // change another admin's survey. "Not yours" and "doesn't exist" both
 // return ErrNotFound (404), which avoids leaking which IDs exist.
 const surveySelect = `
-SELECT s.id, s.title, s.description, s.slug, s.status, s.draft_schema,
+SELECT s.id, s.title, s.description, s.slug, s.status, s.listed, s.draft_schema,
        v.version,
        (v.id IS NULL OR s.draft_schema IS DISTINCT FROM v.schema) AS has_changes,
        COALESCE(jsonb_array_length(s.draft_schema->'questions'), 0),
@@ -51,7 +53,7 @@ LEFT JOIN survey_versions v ON v.id = s.current_version_id`
 
 func scanSurvey(row pgx.Row) (Survey, error) {
 	var s Survey
-	err := row.Scan(&s.ID, &s.Title, &s.Description, &s.Slug, &s.Status, &s.DraftSchema,
+	err := row.Scan(&s.ID, &s.Title, &s.Description, &s.Slug, &s.Status, &s.Listed, &s.DraftSchema,
 		&s.CurrentVersion, &s.HasUnpublishedChanges, &s.QuestionCount, &s.CreatedAt, &s.UpdatedAt)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return Survey{}, ErrNotFound
@@ -101,11 +103,13 @@ func (s *Store) CreateSurvey(ctx context.Context, adminID, title, description st
 	return Survey{}, errors.New("could not generate a unique slug")
 }
 
-func (s *Store) UpdateSurvey(ctx context.Context, adminID, id, title, description string, draft []byte) (Survey, error) {
+// UpdateSurvey saves the draft. listed == nil keeps the current homepage setting.
+func (s *Store) UpdateSurvey(ctx context.Context, adminID, id, title, description string, draft []byte, listed *bool) (Survey, error) {
 	tag, err := s.Pool.Exec(ctx,
-		`UPDATE surveys SET title = $3, description = $4, draft_schema = $5, updated_at = now()
+		`UPDATE surveys SET title = $3, description = $4, draft_schema = $5,
+		        listed = COALESCE($6, listed), updated_at = now()
 		 WHERE id = $1 AND admin_id = $2`,
-		id, adminID, title, description, draft)
+		id, adminID, title, description, draft, listed)
 	if err != nil {
 		return Survey{}, err
 	}

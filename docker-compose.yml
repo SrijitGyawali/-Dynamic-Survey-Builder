@@ -24,6 +24,9 @@ services:
       PORT: "8080"
       # Load the demo admin + survey + responses on startup (idempotent)
       SEED_DEMO: "true"
+      # The single admin, created on startup (registration is off by default)
+      ADMIN_EMAIL: demo@example.com
+      ADMIN_PASSWORD: demo-pass-123
     ports:
       - "8080:8080"
     depends_on:

@@ -14,9 +14,10 @@ services:
     runtime: docker
     plan: free
     region: singapore
+    # With rootDir set, the Docker paths below are relative to rootDir.
     rootDir: apps/api
-    dockerfilePath: ./apps/api/Dockerfile
-    dockerContext: ./apps/api
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
     healthCheckPath: /healthz
     autoDeploy: true
     envVars:

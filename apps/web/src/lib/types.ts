@@ -10,7 +10,11 @@ export interface Option {
 
 export type ConditionOperator = "equals" | "includes" | "gte" | "lte";
 
-/** Show this question only when an EARLIER question's answer matches. */
+/**
+ * Show this question only when an EARLIER question's answer matches.
+ * single_choice -> "equals" optionId, multi_choice -> "includes" optionId,
+ * rating -> "equals" | "gte" | "lte" number. Text questions can't be referenced.
+ */
 export interface Condition {
   questionId: string;
   operator: ConditionOperator;
@@ -43,8 +47,19 @@ export interface Survey {
   description: string;
   slug: string;
   status: SurveyStatus;
-  draftSchema: SurveySchema;
-  currentVersionId: string | null;
+  /** Present on single-survey responses, omitted in the list view. */
+  draftSchema?: SurveySchema;
+  /** Published version number, null if never published. */
+  currentVersion: number | null;
+  /** Draft differs from the published version. */
+  hasUnpublishedChanges: boolean;
+  questionCount: number;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface SurveyVersion {
+  version: number;
+  questionCount: number;
+  createdAt: string;
 }

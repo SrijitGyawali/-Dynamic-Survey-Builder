@@ -93,6 +93,36 @@ Responses are pinned to the version that was answered, so editing a survey later
 - The validation rules are mirrored in TypeScript (`src/lib/schema.ts`) for instant inline errors. The API re-validates everything. A reorder that breaks a condition is flagged immediately rather than silently dropped. Deleting a question clears conditions that depended on it, after a confirmation.
 - Unsaved changes are tracked, leaving the page warns, and **Publish** saves first so you publish exactly what you see.
 
+## Public survey form
+
+Respondents open `/s/:slug`. **No login is needed.**
+
+| Endpoint | Description |
+|----------|-------------|
+| `GET /api/public/surveys/:slug` | The **published** version only (title, description, version, schema). Drafts → `404`, closed → `410 Gone`. Sent with `Cache-Control: no-store` |
+| `POST /api/public/surveys/:slug/responses` | `{version, answers, website}` → `201 {id}`. `422` with `answers.<questionId>` errors, `409` if that version no longer exists, `429` when rate limited |
+
+- **Dynamic rendering:** questions render from the schema. Conditional questions appear and disappear as you answer, and numbering follows only the visible questions.
+- **Validation (client and server, same rules):**
+  - Visibility is evaluated in one top-to-bottom pass. A question whose target is hidden is hidden too (chained conditions).
+  - "Required" only applies to **visible** questions.
+  - The server **drops answers to hidden questions** and rejects unknown question IDs.
+  - Per-type checks: text ≤ 5000 chars and trimmed; single = a valid option; multi = unique valid options; rating = a whole number in range.
+- **Versioning:** the client sends the version it loaded. If the admin re-publishes while someone is filling in the form, their answers are validated against, and stored with, **the version they saw**.
+- **Storage:** answers are stored as canonical JSONB, e.g. `{"q1": "yes", "q2": 4, "q3": ["a", "b"]}`, separately from schemas.
+
+### Spam protection and rate limiting
+
+- **Token-bucket rate limits** per client IP (`internal/ratelimit`), with `429` + `Retry-After`:
+  - login/register: 10/min (brute-force protection)
+  - public reads: 120/min
+  - submissions: 10/min, burst 5
+- **Honeypot:** a hidden `website` field that people never see. Bots that fill it get a fake `201` and nothing is stored.
+- **IPs are not stored.** Only an HMAC hash is kept, to spot abuse without keeping personal data.
+- **Trade-offs:**
+  - Limiter state is in memory: per instance, and reset on restart. Redis would make it shared.
+  - The client IP comes from `X-Forwarded-For` / `X-Real-IP`, which is correct behind the hosting proxy but spoofable if the API were exposed directly.
+
 ### Ownership
 
 Every query filters on `admin_id`. Another admin's survey returns **404** rather than 403, so IDs can't be probed. Malformed IDs also return 404.

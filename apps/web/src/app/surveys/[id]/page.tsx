@@ -268,8 +268,21 @@ export default function SurveyEditorPage() {
                 className="mt-2 w-full resize-y rounded-md border border-transparent px-3 py-2 text-neutral-700 hover:border-neutral-300"
               />
               <p className="px-3 text-xs text-neutral-500">
-                Public link: <code className="rounded bg-neutral-100 px-1">/s/{survey.slug}</code>
-                {survey.status !== "published" && " (works once published)"}
+                Public link:{" "}
+                {survey.status === "published" ? (
+                  <a
+                    href={`/s/${survey.slug}`}
+                    target="_blank"
+                    rel="noopener"
+                    className="rounded bg-neutral-100 px-1 font-mono text-blue-700 hover:underline"
+                  >
+                    /s/{survey.slug} ↗
+                  </a>
+                ) : (
+                  <>
+                    <code className="rounded bg-neutral-100 px-1">/s/{survey.slug}</code> (works once published)
+                  </>
+                )}
               </p>
             </section>
 

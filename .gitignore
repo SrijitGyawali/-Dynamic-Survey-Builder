@@ -13,5 +13,3 @@ apps/api/bin/
 .DS_Store
 Thumbs.db
 
-# local tooling
-.claude/

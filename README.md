@@ -1,79 +1,122 @@
 # Dynamic Survey Builder
 
-Admins build surveys with **conditional logic**, respondents fill them in through a **public link** (no login), and admins see **live analytics**. Built as a full-stack take-home: **Next.js + Go + PostgreSQL**.
+My submission for the AiGeeks Full-Stack Intern task. An admin builds surveys with conditional logic, anyone can answer them through a public link without logging in, and the admin sees the results as charts.
+
+Stack: Next.js 15 (TypeScript, Tailwind) for the frontend, Go for the API, PostgreSQL for storage.
 
 ## Live demo
 
+| What | Link |
+|---|---|
+| Homepage (open surveys) | https://dynamic-survey-builder-nu.vercel.app |
+| Demo survey (no login needed) | https://dynamic-survey-builder-nu.vercel.app/s/customer-satisfaction-demo |
+| Admin sign-in | https://dynamic-survey-builder-nu.vercel.app/admin |
+| API health check | https://survey-builder-api.onrender.com/healthz |
+| Demo video | _to be added_ |
+
+### Admin login
+
 | | |
 |---|---|
-| **Homepage (open surveys)** | https://dynamic-survey-builder-nu.vercel.app |
-| **Demo survey (public, no login)** | https://dynamic-survey-builder-nu.vercel.app/s/customer-satisfaction-demo |
-| **Admin sign-in** | https://dynamic-survey-builder-nu.vercel.app/admin · `demo@example.com` / `demo-pass-123` |
-| **API health** | https://survey-builder-api.onrender.com/healthz |
-| **Demo video** | _to be added_ |
+| Email | `demo@example.com` |
+| Password | `demo-pass-123` |
 
-The demo admin owns a seeded **"Customer Satisfaction"** survey: 8 questions with conditional logic, **2 published versions** and about 68 responses over 4 weeks. Sign in at **/admin**, open **Results** to see the analytics, or create a new survey and turn on **Show on homepage** to list it publicly.
+This account already has a seeded "Customer Satisfaction" survey with 8 questions, conditional logic, 2 published versions and about 68 responses spread over 4 weeks, so the Results page has something to show straight away.
 
-> **First request can take ~50 s.** The API runs on Render's free plan, which sleeps after 15 minutes without traffic. After the first request it's fast.
+**Note:** the API is on Render's free plan and goes to sleep after 15 minutes of no traffic. The first request after that takes around 50 seconds. Opening the health check link first wakes it up.
+
+### Quick tour
+
+1. Open the homepage and answer the demo survey. Give a low satisfaction score and you'll see a follow-up question appear.
+2. Sign in at `/admin`.
+3. Open the survey's **Results** to see the charts and the version filter.
+4. Create a new survey, add questions, set a condition, publish it, and switch on **Show on homepage** if you want it listed.
 
 ## Features
 
-**Required**
-- [x] **Survey builder:** title and description; **text, single choice, multiple choice and 1–5 rating** questions; add, remove, duplicate and **reorder** (drag and drop, keyboard or ↑/↓); mark required; **conditional logic** ("show Q only if …").
-- [x] **Public form:** opened from the homepage list or by link, with no login; questions **rendered dynamically** from the schema; conditional questions appear and disappear live; validation of required fields and input types on the client **and** the server.
-- [x] **Backend:** survey schemas stored as **JSONB**; responses stored **separately** and pinned to the version answered; a clean REST API.
-- [x] **Analytics:** total responses; option counts and shares for choice questions; average and distribution for ratings; a paginated list for text answers.
+### Required
 
-**Bonus**
-- [x] **JWT authentication** for admins (bcrypt, HS256, algorithm pinned).
-- [x] **Survey versioning:** every publish is an immutable snapshot; responses keep the version they answered.
-- [x] **Rate limiting and spam protection:** per-IP token buckets, a honeypot field, and hashed IPs.
-- [ ] Saving partial responses: the server validator already supports a `partial` mode; endpoint and UI not built (see *What I'd do next*).
+- [x] Create a survey with a title and description
+- [x] Four question types: text, single choice, multiple choice, rating 1–5
+- [x] Add, remove, duplicate and reorder questions (drag and drop, or the ↑/↓ buttons with the keyboard)
+- [x] Mark questions as required
+- [x] Conditional logic: "show this question only if question X is / includes / is at least / is at most …"
+- [x] Public form with no login, rendered from the saved schema (nothing is hardcoded)
+- [x] Validation of required fields and answer types, on the client and again on the server
+- [x] Survey schemas stored as JSON (Postgres `JSONB`)
+- [x] Responses stored in their own table, separate from the schemas
+- [x] REST API
+- [x] Analytics: total responses, count per option, average and distribution for ratings, list of text answers
 
-- [x] **Homepage of open surveys:** published surveys the admin chose to list. Each survey has a **Show on homepage** switch (off by default), so a survey can also be link-only.
-- [x] **Single admin, created at deploy time:** `ADMIN_EMAIL` / `ADMIN_PASSWORD` create the one admin on startup. Public registration is disabled (`ALLOW_REGISTRATION=true` turns it back on for development). Admin sign-in lives at `/admin`.
+### Bonus
 
-Extras: a 30-day responses chart, a version filter in analytics, a table view for every chart, responsive layouts, accessible forms, and a seeded demo.
+- [x] JWT authentication for the admin
+- [x] Rate limiting and spam protection on submissions
+- [x] Survey versioning
+- [ ] Saving partial responses (the server-side validator already has a `partial` mode, but I didn't get to the endpoint and UI)
+
+### Extras I added
+
+- A homepage that lists open surveys. Each survey has a **Show on homepage** switch, so a survey can also be shared by link only.
+- One admin account created from environment variables at deploy time. Public sign-up is turned off.
+- A responses-per-day chart for the last 30 days, a version filter on the Results page, and a table view under every chart.
+- Seeded demo data, a responsive layout, and keyboard-accessible forms.
+
+## Tech stack
+
+| Part | What I used | Why |
+|---|---|---|
+| Frontend | Next.js 15 (App Router), React 19, TypeScript, Tailwind CSS v4 | Fast to build with, and easy to deploy on Vercel |
+| Drag and drop | dnd-kit | Works with the keyboard and on touch screens |
+| API | Go, chi router, pgx | Small, fast, and a single binary to deploy |
+| Database | PostgreSQL 16 | JSONB for the schemas, with real SQL for the analytics |
+| Migrations | goose (embedded in the binary) | Migrations run automatically on startup |
+| Auth | JWT (HS256) + bcrypt | Simple and stateless |
+| Tests | `go test`, Vitest | |
+| Hosting | Vercel (web), Render (API + Postgres, Singapore) | Both have free plans |
 
 ## Architecture
 
 ```mermaid
 flowchart LR
     subgraph Browser
-        A["Admin<br/>/surveys, builder, analytics"]
+        A["Admin<br/>builder, results"]
         R["Respondent<br/>/s/:slug"]
     end
     subgraph Vercel
-        W["Next.js 15 (App Router)<br/>TypeScript · Tailwind"]
+        W["Next.js app"]
     end
-    subgraph Render["Render (Singapore)"]
-        API["Go API · chi<br/>JWT · rate limits · validation"]
-        DB[("PostgreSQL<br/>JSONB schemas + answers")]
+    subgraph Render
+        API["Go API<br/>JWT, rate limits, validation"]
+        DB[("PostgreSQL")]
     end
-    A -- HTML/JS --> W
-    R -- HTML/JS --> W
-    A -- "JSON + Bearer JWT (CORS)" --> API
-    R -- "JSON, no auth (CORS, rate limited)" --> API
-    API -- "pgx pool, SQL aggregation" --> DB
+    A --> W
+    R --> W
+    A -- "JSON + JWT" --> API
+    R -- "JSON, no auth" --> API
+    API --> DB
 ```
 
-- The **browser talks to the Go API directly**. Next.js serves the UI only, so there's one backend and one source of truth.
-- The **API is the authority:** it re-validates everything the UI checks, so bypassing the UI with curl gains nothing.
-- Code layers: `handlers` (HTTP) → `survey` (pure rules: schema validation, visibility, answer validation) and `store` (all SQL). The rules package has no I/O and is fully unit-tested.
+- Next.js only serves the UI. The browser calls the Go API directly, so there's a single backend.
+- The API doesn't trust the frontend. Everything the UI checks is checked again on the server, so sending requests with curl doesn't get around any rule.
+- Inside the API I split the code into three layers:
+  - `handlers` deals with HTTP.
+  - `survey` holds the rules: schema validation, which questions are visible, and answer validation. It has no database code, which makes it easy to unit test.
+  - `store` holds all the SQL.
 
-### Data model
+## Data model
 
 ```mermaid
 erDiagram
     admins ||--o{ surveys : owns
-    surveys ||--o{ survey_versions : "publishes"
-    surveys ||--o| survey_versions : "current_version_id"
+    surveys ||--o{ survey_versions : publishes
     surveys ||--o{ responses : receives
     survey_versions ||--o{ responses : "answered against"
     surveys {
         uuid id
         text slug
         text status
+        bool listed
         jsonb draft_schema
     }
     survey_versions {
@@ -84,166 +127,196 @@ erDiagram
     responses {
         uuid id
         jsonb answers
-        text status
         text ip_hash
     }
 ```
 
-Schema JSON (draft and versions):
+Here's what a schema looks like:
+
 ```json
 { "questions": [
   { "id": "q_sat", "type": "rating", "title": "Overall, how satisfied are you?", "required": true, "min": 1, "max": 5 },
-  { "id": "q_low", "type": "text",   "title": "What went wrong?", "required": true,
+  { "id": "q_low", "type": "text", "title": "What went wrong?", "required": true,
     "showIf": { "questionId": "q_sat", "operator": "lte", "value": 2 } }
 ] }
 ```
-Answers JSON: `{"q_role": "developer", "q_sat": 2, "q_low": "Too slow", "q_features": ["builder", "links"]}`.
 
-## Key design decisions
+And an answer: `{"q_sat": 2, "q_low": "Too slow"}`.
 
-1. **Schemas as JSONB, not a `questions` table.** A survey is a document: it's read and written whole, its shape varies by question type, and versioning means snapshotting it whole. Postgres can still query inside JSONB for analytics. Trade-off: weaker DB-level constraints, so validation lives in Go and is unit-tested.
-2. **Draft → immutable versions.**
-   - The builder edits `draft_schema`. **Publish** runs one transaction: lock the row (`FOR UPDATE`), validate the draft *inside* the transaction (no time-of-check/time-of-use gap), then insert version `max + 1`.
-   - An unchanged draft reuses the current version.
-   - Responses reference `survey_version_id`, so editing a live survey never corrupts old answers.
-   - Respondents submit against the version they loaded, even if the admin re-publishes mid-fill.
-3. **Conditional logic: a condition may only point at an *earlier* question.**
-   - This makes cycles impossible and lets visibility be computed in **one top-to-bottom pass**.
-   - A question whose target is hidden is hidden too (chained conditions).
-   - Operators are typed: single choice uses `equals`, multi choice `includes`, rating `equals`/`gte`/`lte`.
-4. **Stable random IDs** for questions and options (never array positions), so reordering and renaming never detach stored answers.
-5. **Validation twice, same rules.** TypeScript mirrors of the Go rules give instant feedback; the Go API is the real guard. Both are tested against the same fixtures. The server **drops answers to hidden questions** and enforces "required" only for visible ones.
-6. **Analytics in SQL, not in memory.**
-   - `jsonb_each` and `jsonb_array_elements_text` turn answers into rows; `row_number()` picks the latest text answers per question; `generate_series` fills days with zero responses.
-   - The 7 independent queries run concurrently (`errgroup`).
-   - `jsonb_typeof` guards protect against type changes between versions.
-   - Text answers page with a keyset cursor, not `OFFSET`.
-7. **No chart library.** The charts are HTML/CSS bars (one validated accent colour, ≤ 24px bars, a table view per chart). That's smaller and more accessible for what's needed.
+### Why JSONB and not a questions table
 
-## API
+A survey gets read and saved as a whole, the fields differ by question type, and versioning means copying the whole thing. A JSON document fits that better than spreading it over several tables. Postgres can still look inside JSONB, so the analytics are plain SQL. The downside is that the database can't enforce the structure, so I validate it in Go and test that validation.
 
-All JSON. Errors look like `{"error": "...", "fields": {"path": "message"}}`.
+### Why versions
 
-| Area | Endpoint | Notes |
-|---|---|---|
-| Auth | `POST /api/auth/login` | → `{token, expiresAt, admin}`; rate limited 10/min |
-| | `POST /api/auth/register` | `403` unless `ALLOW_REGISTRATION=true` |
-| | `GET /api/auth/me` | current admin |
-| Surveys (JWT) | `GET /api/surveys`, `POST /api/surveys` | list / create draft |
-| | `GET`, `PUT`, `DELETE /api/surveys/:id` | `PUT` saves `{title, description, draftSchema}` (validated, `422` with field paths) |
-| | `POST /api/surveys/:id/publish` | `201` new version, `200` if unchanged (also reopens) |
-| | `POST /api/surveys/:id/close` | `409` if not published |
-| | `GET /api/surveys/:id/versions` | |
-| Analytics (JWT) | `GET /api/surveys/:id/analytics?version=N` | totals, daily counts, per-question stats |
-| | `GET /api/surveys/:id/analytics/questions/:qid/answers?cursor=&limit=` | text answers, keyset-paginated |
-| Public | `GET /api/public/surveys` | homepage list: published surveys with `listed = true` (title, description, slug, question count) |
-| | `GET /api/public/surveys/:slug` | published version only; draft `404`, closed `410` |
-| | `POST /api/public/surveys/:slug/responses` | `{version, answers, website}` → `201`; `422` per question, `409` unknown version, `429` rate limited |
+The builder always edits a draft (`draft_schema`). When I publish, the API saves an immutable copy as a new row in `survey_versions`, and each response stores the version it answered. This means:
 
-## Security
+- Editing a live survey never breaks old responses.
+- Someone who opened the form before I re-published can still submit against the version they saw.
+- Publishing runs in one transaction that locks the survey row, so two publishes at the same time can't create the same version number.
 
-- **Passwords:** bcrypt (cost 12). Login gives the same error and the same timing for an unknown email and a wrong password.
-- **JWT:** HS256 pinned (rejects `alg: none`), issuer and expiry required, 24h lifetime.
-- **Ownership:** every survey query filters by `admin_id`; someone else's survey returns **404** (not 403), so IDs can't be probed.
-- **Input:** bodies ≤ 1 MiB, unknown JSON fields rejected, strict per-type answer validation.
-- **Abuse protection:**
-  - Rate limits (token bucket per IP): auth 10/min, public reads 120/min, submissions 10/min (burst 5), with `Retry-After`.
-  - A honeypot field silently drops bot submissions.
-  - Only an HMAC hash of the IP is stored.
-- **CORS:** only the deployed frontend's origin is allowed.
-- **Secrets:** the database URL comes from Render's managed database, and `JWT_SECRET` is generated by Render. Neither is in the repo.
+## Conditional logic and validation
 
-## Assumptions
+- A condition can only point to a question **above** it. That rules out loops, so I can work out which questions are visible in one pass from top to bottom.
+- If the question a condition depends on is hidden, the dependent question is hidden too. That's how chained conditions work.
+- Each question type has its own operators: single choice uses `is`, multiple choice uses `includes`, and rating uses `is`, `is at least` or `is at most`.
+- Questions and options get random IDs, not array positions. Reordering or renaming them never disconnects existing answers.
+- The same rules exist in TypeScript, for instant feedback in the form, and in Go, as the real check. On submit, the server:
+  1. Works out which questions are visible for this set of answers.
+  2. Drops any answers to hidden questions.
+  3. Checks that every visible required question is answered.
+  4. Checks each answer's type (a valid option ID, a whole number in the rating range, text within the length limit).
 
-- One admin runs the site; it is created from environment variables at deploy time, and nobody can sign up. (The data model still scopes surveys per admin, so multiple admins would work if registration were turned on.)
-- Published surveys are **not** listed on the homepage unless the admin turns it on; the link always works.
-- Respondents are anonymous. One person *can* submit more than once; abuse is limited by rate limits, not identity.
-- "Required" means "required **when shown**". A hidden question is never required.
-- Conditions use a single rule per question (no AND/OR groups), referencing choice or rating questions.
-- Analytics "All versions" describes questions using the **live** version. Votes for options removed in a later version are grouped as *"Options removed in a later version"*, so totals still add up.
+## Analytics
 
-## Trade-offs and known limitations
+All the analytics are computed in SQL rather than by loading responses into Go:
 
-| Decision | Why | Cost / how I'd change it |
-|---|---|---|
-| JWT in `localStorage` (Bearer header) | The frontend (Vercel) and API (Render) are on different domains, where cross-site cookies are unreliable | Readable by an XSS bug; mitigated by a 24h expiry. With a shared domain: an httpOnly `SameSite` cookie |
-| In-memory rate limiter | Simple, no extra infrastructure | Per instance and reset on restart → Redis for multiple instances |
-| Client IP from `X-Forwarded-For` | Correct behind Render's proxy | Spoofable if the API were exposed directly → trust only known proxy IPs |
-| Analytics computed per request | Simple and always fresh; fine for thousands of responses | For millions: materialized views or counters updated on write, plus caching |
-| Daily buckets in UTC | Simple | Bucket by the admin's timezone (`AT TIME ZONE`) |
-| Hard delete (cascades to responses) | Simple | Soft delete (`deleted_at`) to allow recovery |
-| Last write wins when the same draft is open in two tabs | Simple | Optimistic locking with `updated_at` → `409` |
-| Free hosting | No cost for a demo | API cold start ~50 s; the free Postgres expires on **2026-12-18** (move to a paid plan or Neon) |
-| PostCSS copy bundled inside Next.js is flagged by `npm audit` | Build-time only (it processes our own CSS); fixing it would force a Next.js major upgrade | Upgrade Next.js major when convenient. All runtime Next.js/React advisories are patched (15.5.29 / 19.1.10) |
+- `jsonb_each` and `jsonb_array_elements_text` turn the answers into rows to count.
+- `generate_series` fills in days with zero responses for the daily chart.
+- The independent queries run at the same time (`errgroup`).
+- Text answers use cursor-based pagination ("Load more") instead of `OFFSET`.
 
-## Run locally
+I didn't use a chart library. The bars are plain HTML/CSS, each chart has a table view, and that was enough for what the task needs.
 
-Requirements: Docker, Go 1.26+, Node 20+.
+## Run it locally
+
+You need Docker, Go 1.26+ and Node 20+.
 
 ```bash
-# 1. Postgres + API (migrations run on startup, demo data is seeded)
+# 1. Postgres + API. Migrations run and the demo data is loaded on startup.
 docker compose up --build
 
-# 2. Frontend
+# 2. Frontend, in a second terminal
 cd apps/web
 cp .env.example .env.local
 npm install
 npm run dev
 ```
 
-- Web: http://localhost:3000 (or 3001 if 3000 is taken; both are allowed by local CORS)
+- Web: http://localhost:3000
 - API: http://localhost:8080/healthz
-- Postgres is on host port **5433**
-- Demo login: `demo@example.com` / `demo-pass-123`
+- Postgres: `localhost:5433` (user, password and database are all `survey`)
+- Admin login: `demo@example.com` / `demo-pass-123`
 
-Seed manually or reset the demo data:
+### Environment variables (API)
+
+| Variable | What it does |
+|---|---|
+| `DATABASE_URL` | Postgres connection string |
+| `JWT_SECRET` | At least 32 characters, used to sign tokens |
+| `ALLOWED_ORIGINS` | Frontend URLs allowed by CORS, comma-separated |
+| `ADMIN_EMAIL`, `ADMIN_PASSWORD` | The admin account, created on startup if it doesn't exist yet |
+| `ALLOW_REGISTRATION` | `true` turns public sign-up back on (off by default) |
+| `SEED_DEMO` | `true` loads the demo survey and responses on startup |
+| `PORT` | Defaults to `8080` |
+
+The frontend needs only `NEXT_PUBLIC_API_URL`, which points to the API.
+
+### Reset the demo data
+
 ```bash
 cd apps/api
-DATABASE_URL="postgres://survey:survey@localhost:5433/survey?sslmode=disable" go run ./cmd/seed          # idempotent
-DATABASE_URL="postgres://survey:survey@localhost:5433/survey?sslmode=disable" go run ./cmd/seed -reset   # recreate
+DATABASE_URL="postgres://survey:survey@localhost:5433/survey?sslmode=disable" go run ./cmd/seed -reset
 ```
 
 ### Tests
 
 ```bash
-cd apps/api && go test ./...   # auth, schema + answer validation, visibility, handlers, rate limiter, analytics, cursors
-cd apps/web && npm test        # client-side schema/answer validation, visibility, builder helpers
+cd apps/api && go test ./...
+cd apps/web && npm test
 ```
+
+The Go tests cover auth, schema and answer validation, visibility, the handlers, the rate limiter and the analytics. The web tests cover the TypeScript copy of the validation rules and the builder helpers.
+
+## API reference
+
+Every endpoint takes and returns JSON. Errors look like `{"error": "...", "fields": {"questions.0.title": "..."}}`.
+
+| Endpoint | Auth | Notes |
+|---|---|---|
+| `POST /api/auth/login` | | Returns a JWT. Rate limited to 10 per minute |
+| `POST /api/auth/register` | | `403` unless `ALLOW_REGISTRATION=true` |
+| `GET /api/auth/me` | JWT | The signed-in admin |
+| `GET /api/surveys` | JWT | List my surveys |
+| `POST /api/surveys` | JWT | Create a draft |
+| `GET /api/surveys/:id` | JWT | Get a survey |
+| `PUT /api/surveys/:id` | JWT | Save the draft. `422` with field paths if it's invalid |
+| `DELETE /api/surveys/:id` | JWT | Delete a survey |
+| `POST /api/surveys/:id/publish` | JWT | `201` new version, `200` if nothing changed. Also reopens a closed survey |
+| `POST /api/surveys/:id/close` | JWT | Stop accepting responses |
+| `GET /api/surveys/:id/versions` | JWT | Published versions |
+| `GET /api/surveys/:id/analytics?version=N` | JWT | Totals, daily counts and per-question stats |
+| `GET /api/surveys/:id/analytics/questions/:qid/answers` | JWT | Text answers, paginated with a cursor |
+| `GET /api/public/surveys` | | Surveys listed on the homepage |
+| `GET /api/public/surveys/:slug` | | The published form. `404` for a draft, `410` once closed |
+| `POST /api/public/surveys/:slug/responses` | | Submit. `422` per question, `429` when rate limited |
+
+## Security
+
+- Passwords are hashed with bcrypt. Login returns the same error for a wrong email and a wrong password.
+- JWTs only accept HS256, so a token with `alg: none` is rejected. They expire after 24 hours.
+- Every survey query is filtered by the admin's ID. Asking for another admin's survey returns `404`.
+- Request bodies are limited to 1 MB and unknown JSON fields are rejected.
+- Rate limits per IP: login 10/min, public reads 120/min, submissions 10/min.
+- The form has a hidden honeypot field. Bots that fill it in are ignored.
+- Only a hash of the respondent's IP is stored, never the IP itself.
+- CORS only allows the deployed frontend.
+- No secrets are in the repo. On Render the database URL comes from the managed database, and `JWT_SECRET` is generated by Render.
+
+## Assumptions
+
+- There's one admin, created from environment variables, and nobody else can sign up. Surveys are still scoped per admin in the database, so turning registration on would work.
+- Respondents are anonymous. The same person can answer more than once, so the rate limits are the only guard against abuse.
+- "Required" means required when the question is shown. A hidden question is never required.
+- Each question has at most one condition (no AND/OR groups), and a condition can only depend on a choice or rating question.
+- New surveys are not listed on the homepage until the admin turns that on. The direct link always works once published.
+- With "All versions" selected, the Results page uses the questions from the live version. Answers for options that were later removed are grouped as "Options removed in a later version", so the totals still add up.
+
+## Trade-offs
+
+| What I did | Why | What I'd change for production |
+|---|---|---|
+| JWT stored in `localStorage` | The web app and the API are on different domains, where cross-site cookies are unreliable | An `httpOnly` cookie on a shared domain |
+| In-memory rate limiter | No extra infrastructure | Redis, so the limits hold across several instances |
+| Analytics calculated on every request | Always up to date, and fast enough for thousands of responses | Pre-computed counters or materialised views for much larger surveys |
+| Daily chart buckets in UTC | Simple | Use the admin's timezone |
+| Deleting a survey deletes its responses | Simple | Soft delete so it can be undone |
+| The last save wins if the same draft is open in two tabs | Simple | Reject a save from an outdated copy (optimistic locking) |
+| Free hosting | No cost | The API has a cold start, and the free database expires on 2026-12-18 |
 
 ## Deployment
 
-- **API + database: Render** via [`render.yaml`](render.yaml) (Blueprint). It creates a free Postgres and a Docker web service in Singapore. `DATABASE_URL` comes from the database, Render generates `JWT_SECRET`, and `SEED_DEMO=true` loads the demo data on startup (idempotent). Health check: `/healthz`.
-- **Frontend: Vercel**, root directory `apps/web`, with `NEXT_PUBLIC_API_URL=https://survey-builder-api.onrender.com`. Pushes to `main` redeploy automatically.
-- The API's `ALLOWED_ORIGINS` is set to the Vercel production domain.
+- **API and database:** Render, from [`render.yaml`](render.yaml). It creates a free Postgres database and runs the API's Dockerfile in Singapore.
+- **Frontend:** Vercel, with the root directory set to `apps/web` and `NEXT_PUBLIC_API_URL` set to the Render URL. Every push to `main` redeploys it.
 
-## Repository layout
+## Project structure
 
 ```
 apps/
-  api/                     Go REST API
-    cmd/server/            entrypoint (migrate → optional seed → serve, graceful shutdown)
-    cmd/seed/              demo data CLI
+  api/
+    cmd/server/        starts the API: run migrations, create the admin, serve
+    cmd/seed/          loads or resets the demo data
     internal/
-      auth/                bcrypt, JWT, RequireAdmin middleware
-      config/              env config
-      handlers/            HTTP: auth, surveys, public, analytics
-      ratelimit/           token-bucket limiter middleware
-      seed/                demo admin, survey (2 versions) and responses
-      store/               all SQL (pgx), migrations runner
-      survey/              schema types, schema validation, visibility, answer validation
-    migrations/            SQL migrations (embedded in the binary)
-  web/                     Next.js frontend
-    src/app/               / (open surveys), /admin (sign-in), /surveys, /surveys/[id] (builder), /surveys/[id]/analytics, /s/[slug]
-    src/components/        builder/, form/, analytics/
-    src/lib/               API client, types, schema + answer rules (mirrors of the Go rules)
-docker-compose.yml         Postgres + API for local development
-render.yaml                Render Blueprint (API + Postgres)
+      auth/            bcrypt, JWT, auth middleware
+      config/          reads environment variables
+      handlers/        HTTP handlers
+      ratelimit/       per-IP rate limiter
+      seed/            demo survey and responses
+      store/           database queries
+      survey/          schema, visibility and answer validation rules
+    migrations/        SQL migrations
+  web/
+    src/app/           pages: /, /admin, /surveys, builder, results, /s/[slug]
+    src/components/    builder, form and analytics components
+    src/lib/           API client, types, validation rules
+docker-compose.yml     local Postgres + API
+render.yaml            Render setup
 ```
 
-## What I'd do next
+## What I'd do with more time
 
-- **Partial responses:** an `in-progress` response with a resume token (the server validator already has a `partial` mode).
-- CSV export, survey templates, AND/OR condition groups, more question types (date, number, matrix).
-- Optimistic locking in the builder, soft delete, per-admin timezones in analytics.
-- Redis-backed rate limiting; one response per device (signed cookie) or CAPTCHA for public surveys.
-- An AI touch: summarise text answers with an LLM (async and cached, treating respondent text as untrusted input).
+- Save partial responses, so a respondent can come back and finish later.
+- CSV export of responses.
+- AND/OR condition groups, and more question types (date, number, matrix).
+- Optimistic locking in the builder, and soft delete.
+- Summarise text answers with an LLM, run in the background, cached, and treating respondent text as untrusted.

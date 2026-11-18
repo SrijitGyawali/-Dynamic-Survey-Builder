@@ -85,6 +85,14 @@ Responses are pinned to the version that was answered, so editing a survey later
 - **Conditional logic** (`showIf`) may only reference an **earlier** question. That rules out cycles and lets visibility be computed in one top-to-bottom pass. The operator must fit the target: `equals` for single choice, `includes` for multi choice, `equals`/`gte`/`lte` for rating. The value must be a real option ID or an in-range rating. Text questions can't be conditions.
 - Errors come back as `422` with field paths, e.g. `draftSchema.questions[1].showIf.questionId`.
 
+### Survey builder (frontend)
+
+- Add, duplicate, delete and **reorder** questions: drag handle (mouse, touch or keyboard: Space, then the arrow keys) plus ↑/↓ buttons. Built with `@dnd-kit`.
+- Switching a question's type keeps what still applies (e.g. options when going single → multi choice).
+- **"Show only if…"** offers only *earlier* choice or rating questions, and the operator and value pickers adapt to the target type.
+- The validation rules are mirrored in TypeScript (`src/lib/schema.ts`) for instant inline errors. The API re-validates everything. A reorder that breaks a condition is flagged immediately rather than silently dropped. Deleting a question clears conditions that depended on it, after a confirmation.
+- Unsaved changes are tracked, leaving the page warns, and **Publish** saves first so you publish exactly what you see.
+
 ### Ownership
 
 Every query filters on `admin_id`. Another admin's survey returns **404** rather than 403, so IDs can't be probed. Malformed IDs also return 404.
@@ -106,5 +114,12 @@ npm run dev
 
 - API: http://localhost:8080/healthz
 - Web: http://localhost:3000
+
+### Tests
+
+```bash
+cd apps/api && go test ./...   # auth, schema validation, slugs, handlers
+cd apps/web && npm test        # client-side validation + builder helpers
+```
 
 To run the API without Docker, start only the DB (`docker compose up db`), copy `apps/api/.env.example` to `.env`, export the variables and run `go run ./cmd/server` from `apps/api`.

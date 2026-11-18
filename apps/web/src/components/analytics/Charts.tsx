@@ -31,7 +31,7 @@ export function HorizontalBars({ data, base, unit = "responses" }: { data: BarDa
             className="grid grid-cols-[1fr_auto] items-center gap-x-3 gap-y-1 text-sm sm:grid-cols-[minmax(6rem,11rem)_1fr_auto]"
           >
             <span
-              className={`col-span-2 truncate sm:col-span-1 ${d.muted ? "italic text-neutral-500" : "text-neutral-800"}`}
+              className={`col-span-2 truncate sm:col-span-1 ${d.muted ? "italic text-muted" : "text-foreground"}`}
               title={d.label}
             >
               {d.label}
@@ -46,8 +46,8 @@ export function HorizontalBars({ data, base, unit = "responses" }: { data: BarDa
                 }}
               />
             </span>
-            <span className="min-w-[5.5rem] text-right tabular-nums text-neutral-700">
-              {d.count} <span className="text-neutral-500">· {share}%</span>
+            <span className="min-w-[5.5rem] text-right tabular-nums text-foreground">
+              {d.count} <span className="text-muted">· {share}%</span>
             </span>
           </li>
         );
@@ -64,7 +64,7 @@ export function ColumnChart({ data }: { data: { date: string; count: number }[] 
 
   return (
     <div>
-      <div className="flex h-36 items-end gap-[2px] border-b border-neutral-300" role="list">
+      <div className="flex h-36 items-end gap-[2px] border-b border-border-strong" role="list">
         {data.map((d) => (
           <div
             key={d.date}
@@ -74,16 +74,16 @@ export function ColumnChart({ data }: { data: { date: string; count: number }[] 
             className="group relative flex h-full flex-1 items-end justify-center outline-none"
           >
             <span
-              className="w-full max-w-[24px] rounded-t-[4px] group-hover:opacity-80 group-focus-visible:ring-2 group-focus-visible:ring-blue-400"
+              className="w-full max-w-[24px] rounded-t-[4px] group-hover:opacity-80 group-focus-visible:ring-2 group-focus-visible:ring-ring"
               style={{ height: `${(d.count / max) * 100}%`, minHeight: d.count > 0 ? 2 : 0, background: "var(--series-1)" }}
             />
-            <span className="pointer-events-none absolute bottom-full z-10 mb-1 hidden whitespace-nowrap rounded-md bg-neutral-900 px-2 py-1 text-xs text-white shadow group-hover:block group-focus-visible:block">
+            <span className="pointer-events-none absolute bottom-full z-10 mb-1 hidden whitespace-nowrap rounded-md bg-primary px-2 py-1 text-xs text-white shadow group-hover:block group-focus-visible:block">
               {fmt(d.date, { month: "short", day: "numeric" })} · <strong>{d.count}</strong>
             </span>
           </div>
         ))}
       </div>
-      <div className="mt-1 flex justify-between text-xs text-neutral-500">
+      <div className="mt-1 flex justify-between text-xs text-muted">
         <span>{data[0] && fmt(data[0].date, { month: "short", day: "numeric" })}</span>
         <span>Today</span>
       </div>
@@ -105,14 +105,14 @@ export function ChartWithTable({
   return (
     <div>
       <div className="mb-3 flex justify-end">
-        <div className="inline-flex rounded-md border border-neutral-200 p-0.5 text-xs" role="group" aria-label="View">
+        <div className="inline-flex rounded-md border border-border p-0.5 text-xs" role="group" aria-label="View">
           {["Chart", "Table"].map((v) => (
             <button
               key={v}
               type="button"
               aria-pressed={(v === "Table") === table}
               onClick={() => setTable(v === "Table")}
-              className={`rounded px-2 py-0.5 ${(v === "Table") === table ? "bg-neutral-900 text-white" : "text-neutral-600 hover:bg-neutral-100"}`}
+              className={`rounded px-2 py-0.5 ${(v === "Table") === table ? "bg-primary text-white" : "text-muted hover:bg-subtle"}`}
             >
               {v}
             </button>
@@ -122,7 +122,7 @@ export function ChartWithTable({
       {table ? (
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-neutral-200 text-left text-neutral-500">
+            <tr className="border-b border-border text-left text-muted">
               {headers.map((h, i) => (
                 <th key={h} className={`py-1.5 font-medium ${i > 0 ? "text-right" : ""}`}>
                   {h}
@@ -132,7 +132,7 @@ export function ChartWithTable({
           </thead>
           <tbody>
             {rows.map((r) => (
-              <tr key={String(r[0])} className="border-b border-neutral-100">
+              <tr key={String(r[0])} className="border-b border-border">
                 {r.map((c, i) => (
                   <td key={i} className={`py-1.5 ${i > 0 ? "text-right tabular-nums" : ""}`}>
                     {c}

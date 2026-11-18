@@ -47,6 +47,8 @@ export interface Survey {
   description: string;
   slug: string;
   status: SurveyStatus;
+  /** Show on the public homepage when published. */
+  listed: boolean;
   /** Present on single-survey responses, omitted in the list view. */
   draftSchema?: SurveySchema;
   /** Published version number, null if never published. */

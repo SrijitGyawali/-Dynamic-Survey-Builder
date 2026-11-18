@@ -1,14 +1,17 @@
 import type { SurveyStatus } from "@/lib/types";
 
-const styles: Record<SurveyStatus, string> = {
-  draft: "bg-neutral-100 text-neutral-700",
-  published: "bg-green-100 text-green-800",
-  closed: "bg-amber-100 text-amber-800",
+// Status always has a text label (never colour alone).
+const styles: Record<SurveyStatus, { cls: string; dot: string }> = {
+  draft: { cls: "bg-slate-100 text-slate-700", dot: "bg-slate-400" },
+  published: { cls: "bg-primary-soft text-primary-hover", dot: "bg-primary" },
+  closed: { cls: "bg-amber-50 text-amber-800", dot: "bg-amber-500" },
 };
 
 export function StatusBadge({ status }: { status: SurveyStatus }) {
+  const s = styles[status];
   return (
-    <span className={`rounded-full px-2 py-0.5 text-xs font-medium capitalize ${styles[status]}`}>
+    <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium capitalize ${s.cls}`}>
+      <span aria-hidden className={`h-1.5 w-1.5 rounded-full ${s.dot}`} />
       {status}
     </span>
   );

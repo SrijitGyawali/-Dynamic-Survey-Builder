@@ -2,6 +2,9 @@
 
 import { useParams } from "next/navigation";
 import { FormEvent, useEffect, useMemo, useState } from "react";
+import { ArrowLeft, CheckCircle2, Loader2 } from "lucide-react";
+import { SiteHeader } from "@/components/SiteHeader";
+import { Alert, Button, LinkButton, Skeleton } from "@/components/ui";
 import { QuestionField } from "@/components/form/QuestionField";
 import { ApiError } from "@/lib/api";
 import { isEmpty, pruneAnswers, validateAnswers, visibleIds } from "@/lib/answers";
@@ -101,35 +104,59 @@ export default function PublicSurveyPage() {
     }
   }
 
+  const progress = shown.length ? Math.round((answeredCount / shown.length) * 100) : 0;
+
   return (
-    <div className="min-h-screen bg-neutral-50">
-      <main className="mx-auto max-w-2xl px-4 py-10">
-        {phase.kind === "loading" && <p className="text-neutral-500">Loading survey…</p>}
+    <div className="min-h-screen bg-subtle">
+      <SiteHeader />
+      {survey && (
+        // Thin progress bar under the header; the counter below repeats it as text.
+        <div className="sticky top-0 z-10 h-1 bg-slate-200" aria-hidden>
+          <div className="h-full bg-primary transition-[width] duration-300" style={{ width: `${progress}%` }} />
+        </div>
+      )}
+      <main id="main" className="mx-auto max-w-2xl px-4 py-10">
+        {phase.kind === "loading" && (
+          <div className="flex flex-col gap-4" aria-busy="true" aria-label="Loading survey">
+            <Skeleton className="h-32 w-full" />
+            <Skeleton className="h-28 w-full" />
+            <Skeleton className="h-28 w-full" />
+          </div>
+        )}
 
         {phase.kind === "unavailable" && (
-          <div className="rounded-lg border border-neutral-200 bg-white p-8 text-center">
+          <div className="rounded-lg border border-border bg-surface p-8 text-center">
             <h1 className="text-xl font-semibold">{phase.title}</h1>
-            <p className="mt-2 text-neutral-600">{phase.text}</p>
+            <p className="mt-2 text-muted">{phase.text}</p>
+            <LinkButton href="/" variant="secondary" className="mt-5">
+              <ArrowLeft size={16} aria-hidden /> See open surveys
+            </LinkButton>
           </div>
         )}
 
         {phase.kind === "submitted" && (
-          <div className="rounded-lg border border-neutral-200 bg-white p-8 text-center" role="status">
-            <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-green-100 text-2xl text-green-700">
-              ✓
+          <div className="rounded-lg border border-border bg-surface p-8 text-center" role="status">
+            <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-primary-soft text-primary">
+              <CheckCircle2 size={28} aria-hidden />
             </div>
             <h1 className="text-xl font-semibold">Thank you!</h1>
-            <p className="mt-2 text-neutral-600">Your response to “{phase.survey.title}” has been recorded.</p>
+            <p className="mt-2 text-muted">Your response to “{phase.survey.title}” has been recorded.</p>
+            <LinkButton href="/" variant="secondary" className="mt-5">
+              <ArrowLeft size={16} aria-hidden /> See other surveys
+            </LinkButton>
           </div>
         )}
 
         {survey && (
           <form onSubmit={onSubmit} noValidate className="flex flex-col gap-4">
-            <header className="rounded-lg border-t-4 border-neutral-900 bg-white p-6 shadow-sm">
-              <h1 className="text-2xl font-bold">{survey.title}</h1>
-              {survey.description && <p className="mt-2 whitespace-pre-line text-neutral-600">{survey.description}</p>}
-              <p className="mt-3 text-xs text-neutral-500">
-                <span className="text-red-600">*</span> Required
+            <header className="rounded-lg border border-border border-t-4 border-t-primary bg-surface p-6">
+              <h1 className="text-2xl font-semibold tracking-tight text-balance">{survey.title}</h1>
+              {survey.description && <p className="mt-2 whitespace-pre-line text-muted">{survey.description}</p>}
+              <p className="mt-4 text-sm text-muted">
+                <span className="text-danger" aria-hidden>
+                  *
+                </span>{" "}
+                Required question
               </p>
             </header>
 
@@ -158,23 +185,16 @@ export default function PublicSurveyPage() {
               </label>
             </div>
 
-            {banner && (
-              <p role="alert" className="rounded-md bg-red-50 px-4 py-3 text-sm text-red-700">
-                {banner}
-              </p>
-            )}
+            {banner && <Alert kind="error">{banner}</Alert>}
 
-            <div className="flex items-center justify-between gap-4">
-              <span className="text-sm text-neutral-500" aria-live="polite">
+            <div className="flex items-center justify-between gap-4 pt-2">
+              <span className="text-sm text-muted" aria-live="polite">
                 {answeredCount} of {shown.length} answered
               </span>
-              <button
-                type="submit"
-                disabled={submitting}
-                className="rounded-md bg-neutral-900 px-6 py-2.5 font-medium text-white hover:bg-neutral-700 disabled:opacity-50"
-              >
+              <Button type="submit" disabled={submitting} className="px-6">
+                {submitting && <Loader2 size={16} className="animate-spin" aria-hidden />}
                 {submitting ? "Submitting…" : "Submit"}
-              </button>
+              </Button>
             </div>
           </form>
         )}

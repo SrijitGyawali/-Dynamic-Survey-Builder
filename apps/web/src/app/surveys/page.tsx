@@ -3,7 +3,10 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useCallback, useEffect, useState } from "react";
+import { BarChart3, ClipboardList, Globe, Pencil, Plus, Trash2 } from "lucide-react";
 import { AdminHeader } from "@/components/AdminHeader";
+import { AdminLoading } from "@/components/AdminLoading";
+import { Alert, Button, Card, IconButton, LinkButton, Skeleton, inputClass } from "@/components/ui";
 import { StatusBadge } from "@/components/StatusBadge";
 import { ApiError } from "@/lib/api";
 import { useAdmin } from "@/lib/auth";
@@ -59,94 +62,125 @@ export default function SurveysPage() {
     }
   }
 
-  if (!admin) return <main className="p-8 text-neutral-500">Loading…</main>;
+  if (!admin) return <AdminLoading />;
 
   return (
-    <>
+    <div className="min-h-screen bg-subtle">
       <AdminHeader email={admin.email} onLogout={logout} />
-      <main className="mx-auto max-w-4xl px-4 py-8">
-        <h1 className="mb-6 text-2xl font-bold">Your surveys</h1>
+      <main id="main" className="mx-auto max-w-5xl px-4 py-8">
+        <div className="mb-6">
+          <h1 className="text-2xl font-semibold tracking-tight">Surveys</h1>
+          <p className="mt-1 text-sm text-muted">Create a survey, build its questions, then publish it to share.</p>
+        </div>
 
-        <form onSubmit={onCreate} className="mb-8 rounded-lg border border-neutral-200 p-4">
-          <h2 className="mb-3 font-semibold">New survey</h2>
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
-            <div className="flex-1">
-              <input
-                placeholder="Title, e.g. Customer feedback"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                aria-label="Survey title"
-                className="w-full rounded-md border border-neutral-300 px-3 py-2"
-              />
-              {createErrors.title && <p className="mt-1 text-xs text-red-600">{createErrors.title}</p>}
+        <Card className="mb-8 p-5">
+          <form onSubmit={onCreate} noValidate>
+            <h2 className="font-semibold">New survey</h2>
+            <div className="mt-4 grid gap-4 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
+              <div className="flex flex-col gap-1.5">
+                <label htmlFor="new-title" className="text-sm font-medium">Title</label>
+                <input
+                  id="new-title"
+                  placeholder="e.g. Customer feedback…"
+                  autoComplete="off"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  aria-invalid={Boolean(createErrors.title)}
+                  aria-describedby={createErrors.title ? "new-title-error" : undefined}
+                  className={inputClass}
+                />
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <label htmlFor="new-desc" className="text-sm font-medium">
+                  Description <span className="font-normal text-muted">(optional)</span>
+                </label>
+                <input
+                  id="new-desc"
+                  autoComplete="off"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  aria-invalid={Boolean(createErrors.description)}
+                  className={inputClass}
+                />
+              </div>
+              <Button type="submit" disabled={creating}>
+                <Plus size={16} aria-hidden />
+                {creating ? "Creating…" : "Create survey"}
+              </Button>
             </div>
-            <div className="flex-1">
-              <input
-                placeholder="Description (optional)"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                aria-label="Survey description"
-                className="w-full rounded-md border border-neutral-300 px-3 py-2"
-              />
-              {createErrors.description && (
-                <p className="mt-1 text-xs text-red-600">{createErrors.description}</p>
-              )}
-            </div>
-            <button
-              disabled={creating}
-              className="rounded-md bg-neutral-900 px-4 py-2 font-medium text-white hover:bg-neutral-700 disabled:opacity-50"
-            >
-              {creating ? "Creating…" : "Create"}
-            </button>
+            {(createErrors.title || createErrors.description) && (
+              <p id="new-title-error" className="mt-2 text-sm text-danger">
+                {createErrors.title ? `Title ${createErrors.title}` : `Description ${createErrors.description}`}
+              </p>
+            )}
+          </form>
+        </Card>
+
+        {error && (
+          <div className="mb-4">
+            <Alert kind="error">{error}</Alert>
           </div>
-        </form>
-
-        {error && <p role="alert" className="mb-4 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
+        )}
 
         {surveys === null ? (
-          <p className="text-neutral-500">Loading surveys…</p>
-        ) : surveys.length === 0 ? (
-          <p className="text-neutral-600">No surveys yet. Create your first one above.</p>
-        ) : (
-          <ul className="divide-y divide-neutral-200 rounded-lg border border-neutral-200">
-            {surveys.map((s) => (
-              <li key={s.id} className="flex items-center justify-between gap-4 p-4">
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2">
-                    <Link href={`/surveys/${s.id}`} className="truncate font-medium hover:underline">
-                      {s.title}
-                    </Link>
-                    <StatusBadge status={s.status} />
-                  </div>
-                  <p className="mt-1 text-xs text-neutral-500">
-                    {s.questionCount} question{s.questionCount === 1 ? "" : "s"}
-                    {s.currentVersion !== null && ` · v${s.currentVersion}`}
-                    {s.currentVersion !== null && s.hasUnpublishedChanges && " · unpublished changes"}
-                    {" · updated "}
-                    {new Date(s.updatedAt).toLocaleString()}
-                  </p>
-                </div>
-                <div className="flex shrink-0 gap-2 text-sm">
-                  <Link href={`/surveys/${s.id}`} className="rounded-md border px-3 py-1 hover:bg-neutral-100">
-                    Edit
-                  </Link>
-                  {s.currentVersion !== null && (
-                    <Link href={`/surveys/${s.id}/analytics`} className="rounded-md border px-3 py-1 hover:bg-neutral-100">
-                      Results
-                    </Link>
-                  )}
-                  <button
-                    onClick={() => onDelete(s)}
-                    className="rounded-md border border-red-200 px-3 py-1 text-red-700 hover:bg-red-50"
-                  >
-                    Delete
-                  </button>
-                </div>
-              </li>
+          <Card className="divide-y divide-border" >
+            {[0, 1, 2].map((i) => (
+              <div key={i} className="p-5">
+                <Skeleton className="h-5 w-1/3" />
+                <Skeleton className="mt-2 h-4 w-1/2" />
+              </div>
             ))}
-          </ul>
+          </Card>
+        ) : surveys.length === 0 ? (
+          <div className="rounded-lg border border-dashed border-border-strong bg-surface p-10 text-center">
+            <ClipboardList className="mx-auto text-muted" size={28} aria-hidden />
+            <p className="mt-3 font-medium">No surveys yet</p>
+            <p className="mt-1 text-sm text-muted">Give your first survey a title above to get started.</p>
+          </div>
+        ) : (
+          <Card>
+            <ul className="divide-y divide-border">
+              {surveys.map((s) => (
+                <li key={s.id} className="flex flex-col gap-3 p-5 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Link href={`/surveys/${s.id}`} className="truncate rounded font-medium hover:text-primary">
+                        {s.title}
+                      </Link>
+                      <StatusBadge status={s.status} />
+                      {s.listed && s.status === "published" && (
+                        <span className="inline-flex items-center gap-1 text-xs text-muted">
+                          <Globe size={12} aria-hidden /> On homepage
+                        </span>
+                      )}
+                    </div>
+                    <p className="mt-1 text-sm text-muted">
+                      {s.questionCount} question{s.questionCount === 1 ? "" : "s"}
+                      {s.currentVersion !== null && ` · v${s.currentVersion}`}
+                      {s.currentVersion !== null && s.hasUnpublishedChanges && " · unpublished changes"}
+                      {" · updated "}
+                      {new Date(s.updatedAt).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}
+                    </p>
+                  </div>
+                  <div className="flex shrink-0 items-center gap-2">
+                    <LinkButton href={`/surveys/${s.id}`} variant="secondary" size="sm">
+                      <Pencil size={14} aria-hidden /> Edit
+                    </LinkButton>
+                    {s.currentVersion !== null && (
+                      <LinkButton href={`/surveys/${s.id}/analytics`} variant="secondary" size="sm">
+                        <BarChart3 size={14} aria-hidden /> Results
+                      </LinkButton>
+                    )}
+                    <IconButton label={`Delete ${s.title}`} tone="danger" onClick={() => onDelete(s)}>
+                      <Trash2 size={16} aria-hidden />
+                    </IconButton>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </Card>
         )}
       </main>
-    </>
+    </div>
   );
 }

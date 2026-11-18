@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { AdminHeader } from "@/components/AdminHeader";
+import { AdminLoading } from "@/components/AdminLoading";
 import { StatusBadge } from "@/components/StatusBadge";
 import { ChartWithTable, ColumnChart } from "@/components/analytics/Charts";
 import { QuestionResult } from "@/components/analytics/QuestionResult";
@@ -32,24 +33,24 @@ export default function AnalyticsPage() {
     };
   }, [token, id, version]);
 
-  if (!admin || !token) return <main className="p-8 text-neutral-500">Loading…</main>;
+  if (!admin || !token) return <AdminLoading />;
 
   const last7 = data?.daily.slice(-7).reduce((s, d) => s + d.count, 0) ?? 0;
 
   return (
-    <>
+    <div className="min-h-screen bg-subtle">
       <AdminHeader email={admin.email} onLogout={logout} />
-      <main className="mx-auto max-w-4xl px-4 py-6">
+      <main id="main" className="mx-auto max-w-5xl px-4 py-6">
         <div className="mb-1 flex flex-wrap items-center gap-3 text-sm">
-          <Link href="/surveys" className="text-neutral-600 hover:underline">
+          <Link href="/surveys" className="text-muted hover:underline">
             ← Surveys
           </Link>
-          <Link href={`/surveys/${id}`} className="text-neutral-600 hover:underline">
+          <Link href={`/surveys/${id}`} className="text-muted hover:underline">
             Edit survey
           </Link>
         </div>
 
-        {error && !data && <p className="mt-6 text-neutral-600">{error}</p>}
+        {error && !data && <p className="mt-6 text-muted">{error}</p>}
 
         {data && (
           <>
@@ -59,17 +60,17 @@ export default function AnalyticsPage() {
                   <h1 className="text-2xl font-bold">{data.title}</h1>
                   <StatusBadge status={data.status} />
                 </div>
-                <p className="text-sm text-neutral-500">Results</p>
+                <p className="text-sm text-muted">Results</p>
               </div>
 
               {/* Filters live in one row above the charts */}
               {data.byVersion.length > 1 && (
                 <label className="flex items-center gap-2 text-sm">
-                  <span className="text-neutral-600">Version</span>
+                  <span className="text-muted">Version</span>
                   <select
                     value={version ?? ""}
                     onChange={(e) => setVersion(e.target.value ? Number(e.target.value) : null)}
-                    className="rounded-md border border-neutral-300 bg-white px-2 py-1.5"
+                    className="rounded-md border border-border-strong bg-surface px-2 py-1.5"
                   >
                     <option value="">All versions</option>
                     {data.byVersion.map((v) => (
@@ -102,9 +103,9 @@ export default function AnalyticsPage() {
                   <Empty text="No responses yet. Share the public link to start collecting answers." />
                 ) : (
                   <>
-                    <section className="rounded-lg border border-neutral-200 bg-white p-5">
+                    <section className="rounded-lg border border-border bg-surface p-5">
                       <h2 className="font-semibold">Responses per day</h2>
-                      <p className="mb-3 text-sm text-neutral-500">Last 30 days</p>
+                      <p className="mb-3 text-sm text-muted">Last 30 days</p>
                       <ChartWithTable
                         chart={<ColumnChart data={data.daily} />}
                         headers={["Date", "Responses"]}
@@ -133,19 +134,19 @@ export default function AnalyticsPage() {
           </>
         )}
       </main>
-    </>
+    </div>
   );
 }
 
 function Tile({ label, value, hero, title }: { label: string; value: string; hero?: boolean; title?: string }) {
   return (
-    <div className={`rounded-lg border border-neutral-200 bg-white p-4 ${hero ? "col-span-2 sm:col-span-1" : ""}`} title={title}>
-      <p className="text-sm text-neutral-500">{label}</p>
+    <div className={`rounded-lg border border-border bg-surface p-4 ${hero ? "col-span-2 sm:col-span-1" : ""}`} title={title}>
+      <p className="text-sm text-muted">{label}</p>
       <p className={`mt-1 font-semibold tabular-nums ${hero ? "text-4xl" : "text-2xl"}`}>{value}</p>
     </div>
   );
 }
 
 function Empty({ text }: { text: string }) {
-  return <p className="rounded-lg border border-dashed border-neutral-300 p-8 text-center text-neutral-600">{text}</p>;
+  return <p className="rounded-lg border border-dashed border-border-strong p-8 text-center text-muted">{text}</p>;
 }

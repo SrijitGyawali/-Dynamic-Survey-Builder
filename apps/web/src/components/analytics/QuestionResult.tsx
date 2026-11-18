@@ -26,16 +26,16 @@ export function QuestionResult({ q, index, total, token, surveyId, version }: Pr
   const skipped = total - q.answered;
 
   return (
-    <article className="rounded-lg border border-neutral-200 bg-white p-5">
+    <article className="rounded-lg border border-border bg-surface p-5">
       <header className="mb-4">
-        <div className="flex flex-wrap items-center gap-2 text-xs text-neutral-500">
+        <div className="flex flex-wrap items-center gap-2 text-xs text-muted">
           <span className="font-semibold">Q{index + 1}</span>
           <span>{TYPE_LABELS[q.type]}</span>
-          {q.conditional && <span className="rounded-full bg-blue-50 px-2 py-0.5 text-blue-800">Conditional</span>}
+          {q.conditional && <span className="rounded-full bg-primary-soft px-2 py-0.5 text-primary-hover">Conditional</span>}
           {q.required && <span>Required</span>}
         </div>
         <h3 className="mt-1 font-semibold">{q.title}</h3>
-        <p className="mt-0.5 text-sm text-neutral-500">
+        <p className="mt-0.5 text-sm text-muted">
           {q.answered} answered
           {total > 0 && skipped > 0 && (
             <> · {q.conditional ? `${skipped} didn't see it or skipped` : `${skipped} skipped`}</>
@@ -44,7 +44,7 @@ export function QuestionResult({ q, index, total, token, surveyId, version }: Pr
       </header>
 
       {q.answered === 0 ? (
-        <p className="text-sm text-neutral-500">No answers yet.</p>
+        <p className="text-sm text-muted">No answers yet.</p>
       ) : q.options ? (
         <ChoiceResult q={q} />
       ) : q.rating ? (
@@ -73,7 +73,7 @@ function ChoiceResult({ q }: { q: QuestionStats }) {
         rows={opts.map((o) => [o.label, o.count, `${pct(o.count, q.answered)}%`])}
       />
       {multi && (
-        <p className="mt-3 text-xs text-neutral-500">
+        <p className="mt-3 text-xs text-muted">
           Respondents could pick several options, so shares add up to more than 100%.
         </p>
       )}
@@ -88,15 +88,15 @@ function RatingResult({ q }: { q: QuestionStats }) {
   return (
     <div className="grid gap-6 sm:grid-cols-[10rem_1fr]">
       <div>
-        <p className="text-sm text-neutral-500">Average</p>
+        <p className="text-sm text-muted">Average</p>
         <p className="text-4xl font-semibold tabular-nums">
           {r.average?.toFixed(2) ?? "–"}
-          <span className="text-lg font-normal text-neutral-500"> / {r.max}</span>
+          <span className="text-lg font-normal text-muted"> / {r.max}</span>
         </p>
         {/* Thin meter: the average's position on the scale */}
         {r.average !== null && (
           <div
-            className="mt-3 h-2 rounded-full bg-neutral-100"
+            className="mt-3 h-2 rounded-full bg-slate-100"
             role="meter"
             aria-valuemin={r.min}
             aria-valuemax={r.max}
@@ -161,26 +161,26 @@ function TextResult({
 
   return (
     <div>
-      <ul className="divide-y divide-neutral-100 rounded-md border border-neutral-100">
+      <ul className="divide-y divide-border rounded-md border border-border">
         {answers.map((a) => (
           <li key={a.responseId} className="flex flex-col gap-1 px-3 py-2.5 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4">
-            <p className="whitespace-pre-line text-sm text-neutral-800">{a.answer}</p>
-            <time dateTime={a.submittedAt} className="shrink-0 text-xs text-neutral-500" title={new Date(a.submittedAt).toLocaleString()}>
+            <p className="whitespace-pre-line text-sm text-foreground">{a.answer}</p>
+            <time dateTime={a.submittedAt} className="shrink-0 text-xs text-muted" title={new Date(a.submittedAt).toLocaleString()}>
               {timeAgo(a.submittedAt)}
             </time>
           </li>
         ))}
       </ul>
       <div className="mt-3 flex items-center gap-3 text-sm">
-        <span className="text-neutral-500">
+        <span className="text-muted">
           Showing {answers.length} of {q.answered}
         </span>
         {more && (
-          <button type="button" onClick={loadMore} disabled={loading} className="text-blue-700 hover:underline disabled:opacity-50">
+          <button type="button" onClick={loadMore} disabled={loading} className="text-primary hover:underline disabled:opacity-50">
             {loading ? "Loading…" : "Load more"}
           </button>
         )}
-        {error && <span className="text-red-600">{error}</span>}
+        {error && <span className="text-danger">{error}</span>}
       </div>
     </div>
   );

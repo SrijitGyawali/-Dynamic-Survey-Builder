@@ -3,7 +3,10 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { ArrowLeft, BarChart3, Check, ExternalLink, Globe, Lock } from "lucide-react";
 import { AdminHeader } from "@/components/AdminHeader";
+import { AdminLoading } from "@/components/AdminLoading";
+import { Alert, Button, Card, LinkButton } from "@/components/ui";
 import { StatusBadge } from "@/components/StatusBadge";
 import { QuestionList } from "@/components/builder/QuestionList";
 import { ApiError } from "@/lib/api";
@@ -16,6 +19,8 @@ interface Form {
   title: string;
   description: string;
   schema: SurveySchema;
+  /** Show on the public homepage once published. */
+  listed: boolean;
 }
 
 type Message = { kind: "ok" | "error"; text: string } | null;
@@ -32,6 +37,7 @@ const formFrom = (s: Survey): Form => ({
   title: s.title,
   description: s.description,
   schema: s.draftSchema ?? { questions: [] },
+  listed: s.listed,
 });
 
 export default function SurveyEditorPage() {
@@ -114,6 +120,7 @@ export default function SurveyEditorPage() {
         title: form.title,
         description: form.description,
         draftSchema: form.schema,
+        listed: form.listed,
       });
       applySurvey(s);
       setServerErrors({});
@@ -165,7 +172,7 @@ export default function SurveyEditorPage() {
     }
   }
 
-  if (!admin) return <main className="p-8 text-neutral-500">Loading…</main>;
+  if (!admin) return <AdminLoading />;
 
   const needsPublish = survey && (survey.status !== "published" || survey.hasUnpublishedChanges || dirty);
   const publishLabel = !survey
@@ -175,124 +182,126 @@ export default function SurveyEditorPage() {
       : survey.hasUnpublishedChanges || dirty
         ? "Publish changes"
         : "Reopen";
+  const saveState = dirty
+    ? "Unsaved changes"
+    : survey?.hasUnpublishedChanges && survey.currentVersion !== null
+      ? "Saved, not published"
+      : "All changes saved";
 
   return (
-    <>
+    <div className="min-h-screen bg-subtle">
       <AdminHeader email={admin.email} onLogout={logout} />
 
       {notFound ? (
-        <main className="mx-auto max-w-3xl px-4 py-8 text-neutral-600">
-          Survey not found. <Link href="/surveys" className="underline">Back to surveys</Link>
+        <main id="main" className="mx-auto max-w-3xl px-4 py-12 text-center">
+          <p className="font-medium">Survey not found</p>
+          <p className="mt-1 text-sm text-muted">It may have been deleted.</p>
+          <LinkButton href="/surveys" variant="secondary" className="mt-4">
+            <ArrowLeft size={16} aria-hidden /> Back to surveys
+          </LinkButton>
         </main>
       ) : !survey || !form ? (
-        <main className="mx-auto max-w-3xl px-4 py-8 text-neutral-500">Loading…</main>
+        <AdminLoading />
       ) : (
         <>
           {/* Sticky action bar */}
-          <div className="sticky top-0 z-20 border-b border-neutral-200 bg-white/95 backdrop-blur">
-            <div className="mx-auto flex max-w-3xl flex-wrap items-center gap-2 px-4 py-3">
-              <Link href="/surveys" className="text-sm text-neutral-600 hover:underline">
-                ← Surveys
+          <div className="sticky top-0 z-20 border-b border-border bg-surface/95 backdrop-blur">
+            <div className="mx-auto flex max-w-3xl flex-wrap items-center gap-x-3 gap-y-2 px-4 py-3">
+              <Link
+                href="/surveys"
+                className="inline-flex items-center gap-1 rounded-md py-1 text-sm text-muted hover:text-foreground"
+              >
+                <ArrowLeft size={16} aria-hidden /> Surveys
               </Link>
               <StatusBadge status={survey.status} />
-              {survey.currentVersion !== null && (
-                <span className="text-xs text-neutral-500">v{survey.currentVersion} live</span>
-              )}
-              <span className="text-xs text-neutral-500">
-                {dirty ? "• Unsaved changes" : survey.hasUnpublishedChanges && survey.currentVersion !== null ? "• Saved, not published" : ""}
+              {survey.currentVersion !== null && <span className="text-xs text-muted">v{survey.currentVersion} live</span>}
+              <span className={`text-xs ${dirty ? "font-medium text-amber-700" : "text-muted"}`} aria-live="polite">
+                {saveState}
               </span>
-              <div className="ml-auto flex gap-2">
+              <div className="ml-auto flex flex-wrap gap-2">
                 {survey.currentVersion !== null && (
-                  <Link
-                    href={`/surveys/${id}/analytics`}
-                    className="rounded-md border border-neutral-300 px-3 py-1.5 text-sm hover:bg-neutral-100"
-                  >
-                    Results
-                  </Link>
-                )}
-                <button
-                  onClick={save}
-                  disabled={!dirty || busy !== null}
-                  className="rounded-md border border-neutral-300 px-3 py-1.5 text-sm font-medium hover:bg-neutral-100 disabled:opacity-40"
-                >
-                  {busy === "save" ? "Saving…" : "Save draft"}
-                </button>
-                {needsPublish && (
-                  <button
-                    onClick={publish}
-                    disabled={busy !== null}
-                    className="rounded-md bg-neutral-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-neutral-700 disabled:opacity-50"
-                  >
-                    {busy === "publish" ? "Publishing…" : publishLabel}
-                  </button>
+                  <LinkButton href={`/surveys/${id}/analytics`} variant="ghost" size="sm">
+                    <BarChart3 size={16} aria-hidden /> Results
+                  </LinkButton>
                 )}
                 {survey.status === "published" && !dirty && (
-                  <button
-                    onClick={close}
-                    disabled={busy !== null}
-                    className="rounded-md border border-neutral-300 px-3 py-1.5 text-sm hover:bg-neutral-100 disabled:opacity-40"
-                  >
-                    Close
-                  </button>
+                  <Button variant="secondary" size="sm" onClick={close} disabled={busy !== null}>
+                    Close survey
+                  </Button>
+                )}
+                <Button variant="secondary" size="sm" onClick={save} disabled={!dirty || busy !== null}>
+                  {busy === "save" ? "Saving…" : "Save draft"}
+                </Button>
+                {needsPublish && (
+                  <Button size="sm" onClick={publish} disabled={busy !== null}>
+                    {busy === "publish" ? "Publishing…" : publishLabel}
+                  </Button>
                 )}
               </div>
             </div>
           </div>
 
-          <main className="mx-auto max-w-3xl px-4 py-6">
+          <main id="main" className="mx-auto max-w-3xl px-4 py-6">
             {message && (
-              <div
-                role={message.kind === "error" ? "alert" : "status"}
-                className={`mb-4 rounded-md px-3 py-2 text-sm ${
-                  message.kind === "error" ? "bg-red-50 text-red-700" : "bg-green-50 text-green-800"
-                }`}
-              >
-                {message.text}
-                {message.kind === "error" && errorCount > 0 && ` (${errorCount} issue${errorCount === 1 ? "" : "s"})`}
-                {other["questions"] && <div>{other["questions"]}</div>}
+              <div className="mb-4">
+                <Alert kind={message.kind === "error" ? "error" : "success"}>
+                  {message.text}
+                  {message.kind === "error" && errorCount > 0 && ` (${errorCount} issue${errorCount === 1 ? "" : "s"})`}
+                  {other["questions"] && <div>{other["questions"]}</div>}
+                </Alert>
               </div>
             )}
 
-            {/* Survey meta */}
-            <section className="mb-6 rounded-lg border border-neutral-200 p-4">
+            {/* Survey details */}
+            <Card className="mb-6 p-5">
+              <label htmlFor="survey-title" className="text-sm font-medium">
+                Title
+              </label>
               <input
+                id="survey-title"
                 value={form.title}
                 onChange={(e) => update({ title: e.target.value })}
-                aria-label="Survey title"
-                placeholder="Survey title"
                 maxLength={200}
-                className={`w-full rounded-md border px-3 py-2 text-xl font-bold ${
-                  other.title ? "border-red-400" : "border-transparent hover:border-neutral-300"
+                aria-invalid={Boolean(other.title)}
+                className={`mt-1.5 w-full rounded-md border px-3 py-2 text-lg font-semibold ${
+                  other.title ? "border-danger" : "border-border-strong hover:border-slate-400"
                 }`}
               />
-              {other.title && <p className="mt-1 text-xs text-red-600">Title {other.title}</p>}
+              {other.title && <p className="mt-1 text-sm text-danger">Title {other.title}</p>}
+
+              <label htmlFor="survey-desc" className="mt-4 block text-sm font-medium">
+                Description <span className="font-normal text-muted">(optional)</span>
+              </label>
               <textarea
+                id="survey-desc"
                 value={form.description}
                 onChange={(e) => update({ description: e.target.value })}
-                aria-label="Survey description"
-                placeholder="Description (optional)"
                 maxLength={2000}
                 rows={2}
-                className="mt-2 w-full resize-y rounded-md border border-transparent px-3 py-2 text-neutral-700 hover:border-neutral-300"
+                className="mt-1.5 w-full resize-y rounded-md border border-border-strong px-3 py-2 text-sm hover:border-slate-400"
               />
-              <p className="px-3 text-xs text-neutral-500">
-                Public link:{" "}
-                {survey.status === "published" ? (
-                  <a
-                    href={`/s/${survey.slug}`}
-                    target="_blank"
-                    rel="noopener"
-                    className="rounded bg-neutral-100 px-1 font-mono text-blue-700 hover:underline"
-                  >
-                    /s/{survey.slug} ↗
-                  </a>
-                ) : (
-                  <>
-                    <code className="rounded bg-neutral-100 px-1">/s/{survey.slug}</code> (works once published)
-                  </>
-                )}
-              </p>
-            </section>
+
+              <div className="mt-5 flex flex-col gap-4 border-t border-border pt-5 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                  <p className="text-sm font-medium">Public link</p>
+                  {survey.status === "published" ? (
+                    <a
+                      href={`/s/${survey.slug}`}
+                      target="_blank"
+                      rel="noopener"
+                      className="mt-1 inline-flex items-center gap-1 break-all rounded font-mono text-sm text-primary hover:underline"
+                    >
+                      /s/{survey.slug} <ExternalLink size={14} aria-hidden />
+                    </a>
+                  ) : (
+                    <p className="mt-1 text-sm text-muted">
+                      <code translate="no" className="font-mono">/s/{survey.slug}</code>, live once published
+                    </p>
+                  )}
+                </div>
+                <ListedSwitch checked={form.listed} onChange={(listed) => update({ listed })} />
+              </div>
+            </Card>
 
             <QuestionList
               questions={form.schema.questions}
@@ -303,28 +312,69 @@ export default function SurveyEditorPage() {
             <section className="mt-10">
               <h2 className="mb-3 font-semibold">Published versions</h2>
               {versions.length === 0 ? (
-                <p className="text-sm text-neutral-500">Not published yet.</p>
+                <p className="text-sm text-muted">Not published yet.</p>
               ) : (
-                <ul className="divide-y divide-neutral-200 rounded-lg border border-neutral-200 text-sm">
-                  {versions.map((v) => (
-                    <li key={v.version} className="flex justify-between p-3">
-                      <span>
-                        Version {v.version}
-                        {v.version === survey.currentVersion && (
-                          <span className="ml-2 text-xs text-green-700">(live)</span>
-                        )}
-                      </span>
-                      <span className="text-neutral-500">
-                        {v.questionCount} questions · {new Date(v.createdAt).toLocaleString()}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
+                <Card>
+                  <ul className="divide-y divide-border text-sm">
+                    {versions.map((v) => (
+                      <li key={v.version} className="flex flex-wrap justify-between gap-2 px-4 py-3">
+                        <span className="inline-flex items-center gap-2 font-medium">
+                          Version {v.version}
+                          {v.version === survey.currentVersion && (
+                            <span className="inline-flex items-center gap-1 rounded-full bg-primary-soft px-2 py-0.5 text-xs text-primary-hover">
+                              <Check size={12} aria-hidden /> Live
+                            </span>
+                          )}
+                        </span>
+                        <span className="text-muted">
+                          {v.questionCount} questions · {new Date(v.createdAt).toLocaleString()}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </Card>
               )}
             </section>
           </main>
         </>
       )}
-    </>
+    </div>
+  );
+}
+
+/** Per-survey choice: list on the public homepage, or link-only. */
+function ListedSwitch({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) {
+  return (
+    <div className="flex items-start gap-3 sm:max-w-xs">
+      <button
+        type="button"
+        role="switch"
+        aria-checked={checked}
+        aria-labelledby="listed-label"
+        aria-describedby="listed-help"
+        onClick={() => onChange(!checked)}
+        className={`relative mt-0.5 inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full transition-colors duration-150 ${
+          checked ? "bg-primary" : "bg-slate-300"
+        }`}
+      >
+        <span
+          aria-hidden
+          className={`inline-block h-5 w-5 rounded-full bg-surface shadow transition-transform duration-150 ${
+            checked ? "translate-x-5" : "translate-x-0.5"
+          }`}
+        />
+      </button>
+      <div>
+        <p id="listed-label" className="inline-flex items-center gap-1.5 text-sm font-medium">
+          {checked ? <Globe size={14} aria-hidden /> : <Lock size={14} aria-hidden />}
+          Show on homepage
+        </p>
+        <p id="listed-help" className="mt-0.5 text-sm text-muted">
+          {checked
+            ? "Listed on the public homepage while published."
+            : "Hidden from the homepage. Only people with the link can respond."}
+        </p>
+      </div>
+    </div>
   );
 }

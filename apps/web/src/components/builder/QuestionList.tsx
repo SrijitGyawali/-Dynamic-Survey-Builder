@@ -10,6 +10,8 @@ import {
   type DragEndEvent,
 } from "@dnd-kit/core";
 import { SortableContext, arrayMove, sortableKeyboardCoordinates, verticalListSortingStrategy } from "@dnd-kit/sortable";
+import { Plus } from "lucide-react";
+import { buttonClass } from "@/components/ui";
 import { LIMITS, TYPE_LABELS, dependentsOf, duplicateQuestion, newQuestion, removeQuestion } from "@/lib/schema";
 import type { Question, QuestionType } from "@/lib/types";
 import { QuestionCard } from "./QuestionCard";
@@ -56,8 +58,9 @@ export function QuestionList({ questions, errors, onChange }: Props) {
   return (
     <div className="flex flex-col gap-4">
       {questions.length === 0 && (
-        <div className="rounded-lg border border-dashed border-neutral-300 p-8 text-center text-neutral-500">
-          No questions yet. Add your first one below.
+        <div className="rounded-lg border border-dashed border-border-strong bg-surface p-8 text-center">
+          <p className="font-medium">No questions yet</p>
+          <p className="mt-1 text-sm text-muted">Choose a question type below to add your first one.</p>
         </div>
       )}
 
@@ -82,16 +85,16 @@ export function QuestionList({ questions, errors, onChange }: Props) {
       </DndContext>
 
       {questions.length < LIMITS.questions && (
-        <div className="flex flex-wrap items-center gap-2 rounded-lg border border-neutral-200 bg-neutral-50 p-3">
-          <span className="text-sm font-medium text-neutral-600">Add question:</span>
+        <div className="flex flex-wrap items-center gap-2 rounded-lg border border-dashed border-border-strong bg-surface p-4">
+          <span className="mr-1 text-sm font-medium">Add a question</span>
           {(Object.keys(TYPE_LABELS) as QuestionType[]).map((t) => (
             <button
               key={t}
               type="button"
               onClick={() => add(t)}
-              className="rounded-md border border-neutral-300 bg-white px-3 py-1 text-sm hover:bg-neutral-100"
+              className={buttonClass("secondary", "sm")}
             >
-              + {TYPE_LABELS[t]}
+              <Plus size={14} aria-hidden /> {TYPE_LABELS[t]}
             </button>
           ))}
         </div>

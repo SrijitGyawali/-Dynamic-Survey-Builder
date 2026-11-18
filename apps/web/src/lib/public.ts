@@ -11,6 +11,17 @@ export interface PublicSurvey {
   schema: SurveySchema;
 }
 
+/** A homepage card: published surveys the admin chose to list. */
+export interface ListedSurvey {
+  title: string;
+  description: string;
+  slug: string;
+  questionCount: number;
+  publishedAt: string;
+}
+
+export const listPublicSurveys = () => api<ListedSurvey[]>("/api/public/surveys", { cache: "no-store" });
+
 export const getPublicSurvey = (slug: string) =>
   api<PublicSurvey>(`/api/public/surveys/${encodeURIComponent(slug)}`, { cache: "no-store" });
 

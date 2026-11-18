@@ -18,7 +18,7 @@ export const createSurvey = (token: string, title: string, description: string) 
 export const updateSurvey = (
   token: string,
   id: string,
-  data: { title: string; description: string; draftSchema: SurveySchema },
+  data: { title: string; description: string; draftSchema: SurveySchema; listed?: boolean },
 ) => api<Survey>(`/api/surveys/${id}`, { method: "PUT", token, body: JSON.stringify(data) });
 
 export const deleteSurvey = (token: string, id: string) =>

@@ -22,10 +22,10 @@ export function QuestionField({ question: q, number, value, error, onChange }: P
   const invalid = Boolean(error);
   const heading = (
     <>
-      <span className="mr-1 text-neutral-400">{number}.</span>
+      <span className="mr-1 text-slate-400">{number}.</span>
       {q.title}
       {q.required && (
-        <span className="ml-1 text-red-600" aria-hidden>
+        <span className="ml-1 text-danger" aria-hidden>
           *
         </span>
       )}
@@ -34,12 +34,12 @@ export function QuestionField({ question: q, number, value, error, onChange }: P
   );
 
   const errorText = error && (
-    <p id={errId} className="mt-2 text-sm text-red-600">
+    <p id={errId} className="mt-2 text-sm text-danger">
       {error}
     </p>
   );
 
-  const wrapper = `rounded-lg border bg-white p-5 transition-colors ${invalid ? "border-red-300" : "border-neutral-200"}`;
+  const wrapper = `rounded-lg border bg-surface p-5 transition-colors ${invalid ? "border-danger" : "border-border"}`;
 
   if (q.type === "text") {
     return (
@@ -55,8 +55,8 @@ export function QuestionField({ question: q, number, value, error, onChange }: P
           maxLength={MAX_TEXT_ANSWER}
           aria-invalid={invalid}
           aria-describedby={invalid ? errId : undefined}
-          className="mt-3 w-full resize-y rounded-md border border-neutral-300 px-3 py-2 focus:border-neutral-500 focus:outline-none"
-          placeholder="Your answer"
+          className="mt-3 w-full resize-y rounded-md border border-border-strong px-3 py-2 hover:border-slate-400"
+          placeholder="Your answer…"
         />
         {errorText}
       </div>
@@ -69,7 +69,7 @@ export function QuestionField({ question: q, number, value, error, onChange }: P
     return (
       <fieldset className={wrapper} data-invalid={invalid} aria-describedby={invalid ? errId : undefined}>
         <legend className="float-left w-full font-medium">{heading}</legend>
-        {multi && <p className="clear-both pt-1 text-sm text-neutral-500">Select all that apply</p>}
+        {multi && <p className="clear-both pt-1 text-sm text-muted">Select all that apply</p>}
         <div className="clear-both flex flex-col gap-2 pt-3">
           {q.options?.map((o) => {
             const checked = multi ? (selected as string[]).includes(o.id) : selected === o.id;
@@ -77,7 +77,7 @@ export function QuestionField({ question: q, number, value, error, onChange }: P
               <label
                 key={o.id}
                 className={`flex cursor-pointer items-center gap-3 rounded-md border px-3 py-2 ${
-                  checked ? "border-neutral-900 bg-neutral-50" : "border-neutral-200 hover:bg-neutral-50"
+                  checked ? "border-primary bg-subtle" : "border-border hover:bg-subtle"
                 }`}
               >
                 <input
@@ -90,7 +90,7 @@ export function QuestionField({ question: q, number, value, error, onChange }: P
                     const list = selected as string[];
                     onChange(checked ? list.filter((x) => x !== o.id) : [...list, o.id]);
                   }}
-                  className="h-4 w-4 accent-neutral-900"
+                  className="h-4 w-4 accent-primary"
                 />
                 {o.label}
               </label>
@@ -123,8 +123,8 @@ export function QuestionField({ question: q, number, value, error, onChange }: P
                 className="peer sr-only"
               />
               <span
-                className={`flex h-11 w-11 items-center justify-center rounded-md border text-sm font-medium peer-focus-visible:ring-2 peer-focus-visible:ring-blue-500 ${
-                  checked ? "border-neutral-900 bg-neutral-900 text-white" : "border-neutral-300 hover:bg-neutral-100"
+                className={`flex h-11 w-11 items-center justify-center rounded-md border text-sm font-medium peer-focus-visible:ring-2 peer-focus-visible:ring-ring ${
+                  checked ? "border-primary bg-primary text-white" : "border-border-strong hover:bg-subtle"
                 }`}
               >
                 {n}
@@ -133,7 +133,7 @@ export function QuestionField({ question: q, number, value, error, onChange }: P
           );
         })}
       </div>
-      <div className="mt-1 flex justify-between text-xs text-neutral-500" style={{ maxWidth: `${values.length * 3.25}rem` }}>
+      <div className="mt-1 flex justify-between text-xs text-muted" style={{ maxWidth: `${values.length * 3.25}rem` }}>
         <span>Low</span>
         <span>High</span>
       </div>

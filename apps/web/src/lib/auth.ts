@@ -52,15 +52,11 @@ export function login(email: string, password: string) {
   });
 }
 
-export function register(email: string, password: string) {
-  return api<AuthResponse>("/api/auth/register", {
-    method: "POST",
-    body: JSON.stringify({ email, password }),
-  });
-}
+/** Where admins sign in. Public self-registration is disabled. */
+export const ADMIN_LOGIN_PATH = "/admin";
 
 /**
- * Loads the current admin from /api/auth/me. Redirects to /login when there
+ * Loads the current admin from /api/auth/me. Redirects to the admin login when there
  * is no token or the token has expired.
  */
 export function useAdmin() {
@@ -71,7 +67,7 @@ export function useAdmin() {
   useEffect(() => {
     const t = getToken();
     if (!t) {
-      router.replace("/login");
+      router.replace(ADMIN_LOGIN_PATH);
       return;
     }
     api<AdminUser>("/api/auth/me", { token: t })
@@ -81,13 +77,13 @@ export function useAdmin() {
       })
       .catch((err) => {
         if (err instanceof ApiError && err.status === 401) clearToken();
-        router.replace("/login");
+        router.replace(ADMIN_LOGIN_PATH);
       });
   }, [router]);
 
   const logout = () => {
     clearToken();
-    router.replace("/login");
+    router.replace(ADMIN_LOGIN_PATH);
   };
 
   return { admin, token, logout };

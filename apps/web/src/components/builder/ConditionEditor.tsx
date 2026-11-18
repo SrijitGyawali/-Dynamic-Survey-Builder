@@ -1,5 +1,6 @@
 "use client";
 
+import { GitBranch } from "lucide-react";
 import { conditionTargets, defaultCondition } from "@/lib/schema";
 import type { Condition, ConditionOperator, Question } from "@/lib/types";
 
@@ -11,7 +12,7 @@ interface Props {
   onChange: (c: Condition | undefined) => void;
 }
 
-const selectCls = "rounded-md border border-neutral-300 bg-white px-2 py-1 text-sm";
+const selectCls = "rounded-md border border-border-strong bg-surface px-2 py-1 text-sm";
 
 export function ConditionEditor({ questions, index, condition, errors, onChange }: Props) {
   const targets = conditionTargets(questions, index);
@@ -21,23 +22,23 @@ export function ConditionEditor({ questions, index, condition, errors, onChange 
 
   if (!enabled) {
     return targets.length === 0 ? (
-      <p className="text-xs text-neutral-500">
+      <p className="text-xs text-muted">
         Tip: add a choice or rating question above this one to show this question conditionally.
       </p>
     ) : (
       <button
         type="button"
         onClick={() => onChange(defaultCondition(targets[targets.length - 1]))}
-        className="self-start text-sm text-blue-700 hover:underline"
+        className="inline-flex cursor-pointer items-center gap-1.5 self-start rounded-md py-1 text-sm font-medium text-primary hover:text-primary-hover"
       >
-        + Show only if…
+        <GitBranch size={14} aria-hidden /> Show only if…
       </button>
     );
   }
 
   return (
     <div
-      className={`flex flex-col gap-2 rounded-md border p-3 ${err ? "border-red-300 bg-red-50" : "border-blue-200 bg-blue-50"}`}
+      className={`flex flex-col gap-2 rounded-md border p-3 ${err ? "border-danger bg-danger-soft" : "border-teal-200 bg-primary-soft"}`}
     >
       <div className="flex flex-wrap items-center gap-2 text-sm">
         <span className="font-medium">Show only if</span>
@@ -112,12 +113,12 @@ export function ConditionEditor({ questions, index, condition, errors, onChange 
         <button
           type="button"
           onClick={() => onChange(undefined)}
-          className="ml-auto text-xs text-neutral-600 hover:underline"
+          className="ml-auto text-xs text-muted hover:underline"
         >
           Remove condition
         </button>
       </div>
-      {err && <p className="text-xs text-red-700">{friendlyConditionError(err)}</p>}
+      {err && <p className="text-xs text-danger">{friendlyConditionError(err)}</p>}
     </div>
   );
 }

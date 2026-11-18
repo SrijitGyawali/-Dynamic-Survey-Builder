@@ -6,13 +6,13 @@ Admins build surveys with **conditional logic**, respondents fill them in throug
 
 | | |
 |---|---|
-| **App** | https://dynamic-survey-builder-nu.vercel.app |
+| **Homepage (open surveys)** | https://dynamic-survey-builder-nu.vercel.app |
 | **Demo survey (public, no login)** | https://dynamic-survey-builder-nu.vercel.app/s/customer-satisfaction-demo |
-| **Admin login** | `demo@example.com` / `demo-pass-123` |
+| **Admin sign-in** | https://dynamic-survey-builder-nu.vercel.app/admin · `demo@example.com` / `demo-pass-123` |
 | **API health** | https://survey-builder-api.onrender.com/healthz |
 | **Demo video** | _to be added_ |
 
-The demo admin owns a seeded **"Customer Satisfaction"** survey: 8 questions with conditional logic, **2 published versions** and about 68 responses over 4 weeks. Open **Results** to see the analytics, or register your own admin account and build a survey from scratch.
+The demo admin owns a seeded **"Customer Satisfaction"** survey: 8 questions with conditional logic, **2 published versions** and about 68 responses over 4 weeks. Sign in at **/admin**, open **Results** to see the analytics, or create a new survey and turn on **Show on homepage** to list it publicly.
 
 > **First request can take ~50 s.** The API runs on Render's free plan, which sleeps after 15 minutes without traffic. After the first request it's fast.
 
@@ -20,7 +20,7 @@ The demo admin owns a seeded **"Customer Satisfaction"** survey: 8 questions wit
 
 **Required**
 - [x] **Survey builder:** title and description; **text, single choice, multiple choice and 1–5 rating** questions; add, remove, duplicate and **reorder** (drag and drop, keyboard or ↑/↓); mark required; **conditional logic** ("show Q only if …").
-- [x] **Public form:** opened by link with no login; questions **rendered dynamically** from the schema; conditional questions appear and disappear live; validation of required fields and input types on the client **and** the server.
+- [x] **Public form:** opened from the homepage list or by link, with no login; questions **rendered dynamically** from the schema; conditional questions appear and disappear live; validation of required fields and input types on the client **and** the server.
 - [x] **Backend:** survey schemas stored as **JSONB**; responses stored **separately** and pinned to the version answered; a clean REST API.
 - [x] **Analytics:** total responses; option counts and shares for choice questions; average and distribution for ratings; a paginated list for text answers.
 
@@ -29,6 +29,9 @@ The demo admin owns a seeded **"Customer Satisfaction"** survey: 8 questions wit
 - [x] **Survey versioning:** every publish is an immutable snapshot; responses keep the version they answered.
 - [x] **Rate limiting and spam protection:** per-IP token buckets, a honeypot field, and hashed IPs.
 - [ ] Saving partial responses: the server validator already supports a `partial` mode; endpoint and UI not built (see *What I'd do next*).
+
+- [x] **Homepage of open surveys:** published surveys the admin chose to list. Each survey has a **Show on homepage** switch (off by default), so a survey can also be link-only.
+- [x] **Single admin, created at deploy time:** `ADMIN_EMAIL` / `ADMIN_PASSWORD` create the one admin on startup. Public registration is disabled (`ALLOW_REGISTRATION=true` turns it back on for development). Admin sign-in lives at `/admin`.
 
 Extras: a 30-day responses chart, a version filter in analytics, a table view for every chart, responsive layouts, accessible forms, and a seeded demo.
 
@@ -123,7 +126,8 @@ All JSON. Errors look like `{"error": "...", "fields": {"path": "message"}}`.
 
 | Area | Endpoint | Notes |
 |---|---|---|
-| Auth | `POST /api/auth/register`, `POST /api/auth/login` | → `{token, expiresAt, admin}`; rate limited 10/min |
+| Auth | `POST /api/auth/login` | → `{token, expiresAt, admin}`; rate limited 10/min |
+| | `POST /api/auth/register` | `403` unless `ALLOW_REGISTRATION=true` |
 | | `GET /api/auth/me` | current admin |
 | Surveys (JWT) | `GET /api/surveys`, `POST /api/surveys` | list / create draft |
 | | `GET`, `PUT`, `DELETE /api/surveys/:id` | `PUT` saves `{title, description, draftSchema}` (validated, `422` with field paths) |
@@ -132,7 +136,8 @@ All JSON. Errors look like `{"error": "...", "fields": {"path": "message"}}`.
 | | `GET /api/surveys/:id/versions` | |
 | Analytics (JWT) | `GET /api/surveys/:id/analytics?version=N` | totals, daily counts, per-question stats |
 | | `GET /api/surveys/:id/analytics/questions/:qid/answers?cursor=&limit=` | text answers, keyset-paginated |
-| Public | `GET /api/public/surveys/:slug` | published version only; draft `404`, closed `410` |
+| Public | `GET /api/public/surveys` | homepage list: published surveys with `listed = true` (title, description, slug, question count) |
+| | `GET /api/public/surveys/:slug` | published version only; draft `404`, closed `410` |
 | | `POST /api/public/surveys/:slug/responses` | `{version, answers, website}` → `201`; `422` per question, `409` unknown version, `429` rate limited |
 
 ## Security
@@ -150,7 +155,8 @@ All JSON. Errors look like `{"error": "...", "fields": {"path": "message"}}`.
 
 ## Assumptions
 
-- Admins are independent; there are no teams or shared surveys. Anyone can register an admin account.
+- One admin runs the site; it is created from environment variables at deploy time, and nobody can sign up. (The data model still scopes surveys per admin, so multiple admins would work if registration were turned on.)
+- Published surveys are **not** listed on the homepage unless the admin turns it on; the link always works.
 - Respondents are anonymous. One person *can* submit more than once; abuse is limited by rate limits, not identity.
 - "Required" means "required **when shown**". A hidden question is never required.
 - Conditions use a single rule per question (no AND/OR groups), referencing choice or rating questions.
@@ -227,7 +233,7 @@ apps/
       survey/              schema types, schema validation, visibility, answer validation
     migrations/            SQL migrations (embedded in the binary)
   web/                     Next.js frontend
-    src/app/               /login, /surveys, /surveys/[id] (builder), /surveys/[id]/analytics, /s/[slug]
+    src/app/               / (open surveys), /admin (sign-in), /surveys, /surveys/[id] (builder), /surveys/[id]/analytics, /s/[slug]
     src/components/        builder/, form/, analytics/
     src/lib/               API client, types, schema + answer rules (mirrors of the Go rules)
 docker-compose.yml         Postgres + API for local development

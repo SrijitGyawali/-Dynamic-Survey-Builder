@@ -69,8 +69,8 @@ func (h *PublicHandler) List(w http.ResponseWriter, r *http.Request) {
 	for i, l := range list {
 		out[i] = listedSurveyDTO{l.Title, l.Description, l.Slug, l.QuestionCount, l.PublishedAt}
 	}
-	// Short shared cache: the list changes rarely, and a stale minute is harmless.
-	w.Header().Set("Cache-Control", "public, max-age=60")
+	// No caching: publishing or toggling "Show on homepage" must show up immediately.
+	w.Header().Set("Cache-Control", "no-store")
 	writeJSON(w, http.StatusOK, out)
 }
 

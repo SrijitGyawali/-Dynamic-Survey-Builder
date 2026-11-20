@@ -12,7 +12,7 @@ Stack: Next.js 15 (TypeScript, Tailwind) for the frontend, Go for the API, Postg
 | Demo survey (no login needed) | https://dynamic-survey-builder-nu.vercel.app/s/customer-satisfaction-demo |
 | Admin sign-in | https://dynamic-survey-builder-nu.vercel.app/admin |
 | API health check | https://survey-builder-api.onrender.com/healthz |
-| Demo video | _to be added_ |
+| Demo video | https://www.loom.com/share/03ee1bb67db340c78bc6f9115fdadf4b |
 
 ### Admin login
 
